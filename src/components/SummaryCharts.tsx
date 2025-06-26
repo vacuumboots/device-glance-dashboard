@@ -97,7 +97,7 @@ export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="value" fill="#8884d8">
-                {tmpData.map((entry, index) => (
+                {tpmData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
