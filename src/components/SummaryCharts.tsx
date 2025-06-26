@@ -49,6 +49,11 @@ export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
     return null;
   };
 
+  const CustomBarCell = (props: any) => {
+    const { fill, payload } = props;
+    return <Cell {...props} fill={payload.color || fill} />;
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Windows 11 Readiness */}
@@ -91,7 +96,11 @@ export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill={(entry: any) => entry.color} />
+              <Bar dataKey="value" fill="#8884d8">
+                {tmpData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -137,7 +146,11 @@ export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill={(entry: any) => entry.color} />
+              <Bar dataKey="value" fill="#8884d8">
+                {joinTypeData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

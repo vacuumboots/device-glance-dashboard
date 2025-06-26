@@ -62,7 +62,7 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
     if (filters.tpmPresent !== 'all') {
       const hasTPM = device.TPMVersion && device.TPMVersion !== 'None';
       if (filters.tpmPresent === 'present' && !hasTPM) return false;
-      if (filters.tmpPresent === 'missing' && hasTPM) return false;
+      if (filters.tpmPresent === 'missing' && hasTPM) return false;
     }
     
     // Secure Boot filter
