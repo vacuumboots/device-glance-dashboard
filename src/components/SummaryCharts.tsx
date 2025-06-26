@@ -11,20 +11,21 @@ interface SummaryChartsProps {
 
 export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
   const windows11Data = generateChartData(devices, 'canUpgradeToWin11', {
-    true: { name: 'Windows 11 Ready', color: '#22c55e' },
-    false: { name: 'Not Ready', color: '#ef4444' }
+    'true': { name: 'Windows 11 Ready', color: '#22c55e' },
+    'false': { name: 'Not Ready', color: '#ef4444' }
   });
 
   const tpmData = generateChartData(devices, 'TPMVersion', {
     '2.0': { name: 'TPM 2.0', color: '#22c55e' },
     '1.2': { name: 'TPM 1.2', color: '#f59e0b' },
     'None': { name: 'No TPM', color: '#ef4444' },
-    '': { name: 'Unknown', color: '#6b7280' }
+    '': { name: 'Unknown', color: '#6b7280' },
+    'null': { name: 'Unknown', color: '#6b7280' }
   });
 
   const secureBootData = generateChartData(devices, 'SecureBootEnabled', {
-    true: { name: 'Enabled', color: '#22c55e' },
-    false: { name: 'Disabled', color: '#ef4444' }
+    'true': { name: 'Enabled', color: '#22c55e' },
+    'false': { name: 'Disabled', color: '#ef4444' }
   });
 
   const joinTypeData = generateChartData(devices, 'JoinType', {

@@ -13,6 +13,20 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
       const fileDevices = Array.isArray(data) ? data : [data];
       
       fileDevices.forEach(deviceData => {
+        // Handle nested TPM info
+        const tpmInfo = deviceData.TPMInfo || {};
+        const tpmVersion = tpmInfo.TPMVersion || deviceData.TPMVersion || '';
+        
+        // Handle nested SecureBoot info
+        const secureBootStatus = deviceData.SecureBootStatus || {};
+        const secureBootEnabled = secureBootStatus.SecureBootEnabled !== undefined 
+          ? secureBootStatus.SecureBootEnabled 
+          : Boolean(deviceData.SecureBootEnabled);
+        
+        // Handle collection date
+        const collectionDate = deviceData.CollectionDate || {};
+        const lastBootUpTime = deviceData.LastBootUpTime || collectionDate.DateTime || '';
+        
         // Process and normalize device data
         const device: Device = {
           ComputerName: deviceData.ComputerName || '',
@@ -25,11 +39,11 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           TotalStorageGB: parseFloat(deviceData.TotalStorageGB) || 0,
           FreeStorageGB: parseFloat(deviceData.FreeStorageGB) || 0,
           HardDriveType: deviceData.HardDriveType || '',
-          TPMVersion: deviceData.TPMVersion || '',
-          SecureBootEnabled: Boolean(deviceData.SecureBootEnabled),
+          TPMVersion: tpmVersion,
+          SecureBootEnabled: secureBootEnabled,
           JoinType: deviceData.JoinType || 'None',
           InternalIP: deviceData.InternalIP || '',
-          LastBootUpTime: deviceData.LastBootUpTime || '',
+          LastBootUpTime: lastBootUpTime,
           HardwareHash: deviceData.HardwareHash || '',
           SerialNumber: deviceData.SerialNumber || '',
           canUpgradeToWin11: Boolean(deviceData.canUpgradeToWin11),
