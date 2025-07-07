@@ -20,6 +20,7 @@ export interface Device {
   canUpgradeToWin11: boolean;
   issues: string[];
   location?: string;
+  CollectionDate?: string;
   
   // Raw properties for details view
   [key: string]: any;

@@ -26,6 +26,7 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
         // Handle collection date
         const collectionDate = deviceData.CollectionDate || {};
         const lastBootUpTime = deviceData.LastBootUpTime || collectionDate.DateTime || '';
+        const collectionDateString = collectionDate.DateTime || deviceData.CollectionDate || '';
         
         // Check if device is already running Windows 11
         const osName = deviceData.OSName || '';
@@ -55,6 +56,7 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           canUpgradeToWin11: isWindows11 || Boolean(deviceData.canUpgradeToWin11),
           issues: Array.isArray(deviceData.issues) ? deviceData.issues : [],
           location: determineLocation(deviceData),
+          CollectionDate: collectionDateString,
           ...deviceData // Include all original properties
         };
         

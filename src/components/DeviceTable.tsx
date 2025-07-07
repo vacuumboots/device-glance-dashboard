@@ -97,6 +97,18 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                 </TableHead>
                 <TableHead 
                   className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('WindowsVersion')}
+                >
+                  Windows Version <SortIcon column="WindowsVersion" />
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('CollectionDate')}
+                >
+                  Collection Date <SortIcon column="CollectionDate" />
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('TotalRAMGB')}
                 >
                   RAM <SortIcon column="TotalRAMGB" />
@@ -129,6 +141,8 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   <TableCell>{device.Manufacturer}</TableCell>
                   <TableCell>{device.Model}</TableCell>
                   <TableCell>{device.OSName}</TableCell>
+                  <TableCell>{device.WindowsVersion}</TableCell>
+                  <TableCell>{device.CollectionDate ? formatDate(device.CollectionDate) : '-'}</TableCell>
                   <TableCell>{formatGB(device.TotalRAMGB)}</TableCell>
                   <TableCell>
                     <span className={device.FreeStorageGB < 30 ? 'text-red-600' : ''}>
