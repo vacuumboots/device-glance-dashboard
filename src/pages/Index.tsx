@@ -20,7 +20,7 @@ const Index = () => {
     secureBootEnabled: 'all',
     lowStorage: 'all',
     joinType: 'all',
-    location: 'all'
+    location: []
   });
 
   const filteredDevices = useMemo(() => {
@@ -45,7 +45,7 @@ const Index = () => {
       secureBootEnabled: 'all',
       lowStorage: 'all',
       joinType: 'all',
-      location: 'all'
+      location: []
     });
   };
 

@@ -31,7 +31,7 @@ export interface FilterState {
   secureBootEnabled: 'all' | 'enabled' | 'disabled';
   lowStorage: 'all' | 'low' | 'sufficient';
   joinType: 'all' | 'Hybrid' | 'AzureAD' | 'OnPremAD' | 'None';
-  location: string;
+  location: string[];
 }
 
 export interface ChartData {

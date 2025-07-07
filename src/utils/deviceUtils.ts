@@ -104,7 +104,7 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
     }
     
     // Location filter
-    if (filters.location !== 'all' && device.location !== filters.location) {
+    if (filters.location.length > 0 && !filters.location.includes(device.location || '')) {
       return false;
     }
     

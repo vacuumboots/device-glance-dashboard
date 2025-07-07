@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Device, FilterState } from '@/types/device';
 import { Filter } from 'lucide-react';
 
@@ -24,6 +25,47 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const locations = Array.from(new Set(
     devices.map(d => d.location).filter(Boolean)
   )).sort();
+
+  // Grouped locations mapping
+  const locationGroups = {
+    'High Country': [
+      'C. Ian McLaren',
+      'Longview', 
+      'Millarville',
+      'Oilfields',
+      'Turner Valley'
+    ],
+    'High River': [
+      'Joe Clark',
+      'Senator Reily',
+      'Highwood',
+      'Spitzee'
+    ],
+    'High River Area': [
+      'Blackie',
+      'Cayley'
+    ],
+    'Okotoks': [
+      'Big Rock',
+      'Dr. Morris Gibson',
+      'Okotoks Junior',
+      'Percy Pegler',
+      'Foothills Composite',
+      'Meadow Ridge',
+      'Westmount'
+    ],
+    'Okotoks Area': [
+      'Heritage Heights',
+      'Red Deer Lake'
+    ]
+  };
+
+  const handleLocationChange = (location: string, checked: boolean) => {
+    const newLocations = checked 
+      ? [...filters.location, location]
+      : filters.location.filter(l => l !== location);
+    onFiltersChange({ ...filters, location: newLocations });
+  };
 
   return (
     <Card>
@@ -129,23 +171,33 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
           {/* Location */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Location</label>
-            <Select
-              value={filters.location}
-              onValueChange={(value) => updateFilter('location', value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {locations.map(location => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <label className="text-sm font-medium">Locations</label>
+            <div className="space-y-3 max-h-48 overflow-y-auto border rounded-md p-3">
+              {Object.entries(locationGroups).map(([groupName, groupLocations]) => (
+                <div key={groupName} className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    {groupName}
+                  </h4>
+                  <div className="space-y-1 pl-2">
+                    {groupLocations.filter(loc => locations.includes(loc)).map(location => (
+                      <div key={location} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`location-${location}`}
+                          checked={filters.location.includes(location)}
+                          onCheckedChange={(checked) => handleLocationChange(location, !!checked)}
+                        />
+                        <label 
+                          htmlFor={`location-${location}`}
+                          className="text-sm cursor-pointer"
+                        >
+                          {location}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </CardContent>
