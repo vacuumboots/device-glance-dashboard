@@ -27,13 +27,19 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
         const collectionDate = deviceData.CollectionDate || {};
         const lastBootUpTime = deviceData.LastBootUpTime || collectionDate.DateTime || '';
         
+        // Check if device is already running Windows 11
+        const osName = deviceData.OSName || '';
+        const windowsVersion = deviceData.WindowsVersion || '';
+        const isWindows11 = osName.toLowerCase().includes('windows 11') || 
+                           windowsVersion.toLowerCase().includes('windows 11');
+        
         // Process and normalize device data
         const device: Device = {
           ComputerName: deviceData.ComputerName || '',
           Manufacturer: deviceData.Manufacturer || '',
           Model: deviceData.Model || '',
-          OSName: deviceData.OSName || '',
-          WindowsVersion: deviceData.WindowsVersion || '',
+          OSName: osName,
+          WindowsVersion: windowsVersion,
           WindowsEdition: deviceData.WindowsEdition || '',
           TotalRAMGB: parseFloat(deviceData.TotalRAMGB) || 0,
           TotalStorageGB: parseFloat(deviceData.TotalStorageGB) || 0,
@@ -46,7 +52,7 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           LastBootUpTime: lastBootUpTime,
           HardwareHash: deviceData.HardwareHash || '',
           SerialNumber: deviceData.SerialNumber || '',
-          canUpgradeToWin11: Boolean(deviceData.canUpgradeToWin11),
+          canUpgradeToWin11: isWindows11 || Boolean(deviceData.canUpgradeToWin11),
           issues: Array.isArray(deviceData.issues) ? deviceData.issues : [],
           location: determineLocation(deviceData),
           ...deviceData // Include all original properties
