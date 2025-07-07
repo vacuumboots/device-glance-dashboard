@@ -154,17 +154,5 @@ const determineLocation = (deviceData: any): string => {
     }
   }
   
-  // Try to extract from computer name if no IP match
-  const computerName = deviceData.ComputerName || '';
-  if (computerName.includes('-')) {
-    const parts = computerName.split('-');
-    if (parts.length > 1) {
-      const possibleLocation = parts[0].length <= 6 ? parts[0] : parts[1];
-      if (possibleLocation && possibleLocation.length <= 6) {
-        return possibleLocation.toUpperCase();
-      }
-    }
-  }
-  
   return 'Unknown';
 };
