@@ -119,27 +119,50 @@ const determineLocation = (deviceData: any): string => {
   if (deviceData.Site) return deviceData.Site;
   if (deviceData.Office) return deviceData.Office;
   
-  // Try to extract from computer name or IP if there's a pattern
-  const computerName = deviceData.ComputerName || '';
   const ip = deviceData.InternalIP || '';
   
-  // Common patterns for location extraction
-  if (computerName.includes('-')) {
-    const parts = computerName.split('-');
-    if (parts.length > 1) {
-      // Often the first or second part contains location info
-      const possibleLocation = parts[0].length <= 6 ? parts[0] : parts[1];
-      if (possibleLocation && possibleLocation.length <= 6) {
-        return possibleLocation.toUpperCase();
+  // Location mapping based on IP ranges
+  const locationMappings = [
+    { name: "Red Deer Lake", range: "10.53." },
+    { name: "Heritage Heights", range: "10.51." },
+    { name: "Big Rock", range: "10.52." },
+    { name: "Westmount", range: "10.54." },
+    { name: "Okotoks Junior", range: "10.55." },
+    { name: "Percy Pegler", range: "10.56." },
+    { name: "Dr. Morris Gibson", range: "10.57." },
+    { name: "Millarville", range: "10.58." },
+    { name: "Longview", range: "10.141." },
+    { name: "Foothills Composite", range: "10.140." },
+    { name: "Spitzee", range: "10.142." },
+    { name: "Highwood", range: "10.143." },
+    { name: "Turner Valley", range: "10.145." },
+    { name: "Joe Clark", range: "10.146." },
+    { name: "Senator Reily", range: "10.147." },
+    { name: "Cayley", range: "10.148." },
+    { name: "Blackie", range: "10.149." },
+    { name: "C. Ian McLaren", range: "10.150." },
+    { name: "Oilfields", range: "10.151." },
+    { name: "Meadow Ridge", range: "10.60." }
+  ];
+  
+  // Check IP against location ranges
+  if (ip) {
+    for (const location of locationMappings) {
+      if (ip.startsWith(location.range)) {
+        return location.name;
       }
     }
   }
   
-  // Extract from IP subnet if pattern exists
-  if (ip.startsWith('192.168.') || ip.startsWith('10.')) {
-    const parts = ip.split('.');
-    if (parts.length >= 3) {
-      return `Subnet-${parts[2]}`;
+  // Try to extract from computer name if no IP match
+  const computerName = deviceData.ComputerName || '';
+  if (computerName.includes('-')) {
+    const parts = computerName.split('-');
+    if (parts.length > 1) {
+      const possibleLocation = parts[0].length <= 6 ? parts[0] : parts[1];
+      if (possibleLocation && possibleLocation.length <= 6) {
+        return possibleLocation.toUpperCase();
+      }
     }
   }
   
