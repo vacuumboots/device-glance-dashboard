@@ -29,6 +29,7 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ devices }) => {
       OSName: device.OSName,
       WindowsVersion: device.WindowsVersion,
       WindowsEdition: device.WindowsEdition,
+      SerialNumber: device.SerialNumber || '',
       TotalRAMGB: device.TotalRAMGB,
       TotalStorageGB: device.TotalStorageGB,
       FreeStorageGB: device.FreeStorageGB,
@@ -38,6 +39,7 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ devices }) => {
       JoinType: device.JoinType,
       InternalIP: device.InternalIP,
       LastBootUpTime: device.LastBootUpTime,
+      CollectionDate: device.CollectionDate || '',
       Windows11Ready: device.canUpgradeToWin11,
       Issues: device.issues.join('; '),
       Location: device.location || ''
