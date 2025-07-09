@@ -230,6 +230,24 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
             </Select>
           </div>
 
+          {/* Hash Present */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Hash Present</label>
+            <Select
+              value={filters.hashPresent}
+              onValueChange={(value) => updateFilter('hashPresent', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="present">Present</SelectItem>
+                <SelectItem value="missing">Missing</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Location */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Locations</label>

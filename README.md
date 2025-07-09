@@ -71,3 +71,11 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Recent Changes
+
+### July 9, 2025
+- **Added Last Boot Time column** to the device inventory table with proper .NET Date format parsing
+- **Fixed Collection Date parsing** to handle complex object structure with nested date properties
+- **Added Hash Present filter** to filter devices based on whether they have a hardware hash in their records
+- Improved date formatting functions to handle various date formats from device exports

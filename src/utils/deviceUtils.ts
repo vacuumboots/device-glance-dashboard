@@ -209,6 +209,13 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
       return false;
     }
 
+    // Hash Present filter
+    if (filters.hashPresent !== 'all') {
+      const hasHash = device.HardwareHash && device.HardwareHash.trim() !== '';
+      if (filters.hashPresent === 'present' && !hasHash) return false;
+      if (filters.hashPresent === 'missing' && hasHash) return false;
+    }
+
     // Location filter
     if (filters.location.length > 0 && !filters.location.includes(device.location || '')) {
       return false;

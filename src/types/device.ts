@@ -19,7 +19,7 @@ export interface Device {
   canUpgradeToWin11: boolean;
   issues: string[];
   location?: string;
-  CollectionDate?: string;
+  CollectionDate?: string | { value: string; DisplayHint: number; DateTime: string };
   category?: string;
 
   // Raw properties for details view
@@ -33,6 +33,7 @@ export interface FilterState {
   lowStorage: 'all' | 'low' | 'sufficient';
   joinType: 'all' | 'Hybrid' | 'AzureAD' | 'OnPremAD' | 'None';
   deviceCategory: 'all' | 'Desktop' | 'Laptop' | 'Other';
+  hashPresent: 'all' | 'present' | 'missing';
   location: string[];
 }
 

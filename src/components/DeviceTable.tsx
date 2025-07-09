@@ -55,8 +55,38 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
 
   const formatGB = (gb: number) => `${gb.toFixed(1)} GB`;
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateInput: string | any) => {
     try {
+      // Handle CollectionDate object format
+      if (typeof dateInput === 'object' && dateInput !== null) {
+        // Try DateTime property first (readable format)
+        if (dateInput.DateTime) {
+          return new Date(dateInput.DateTime).toLocaleDateString();
+        }
+        // Fall back to parsing the value property (.NET Date format)
+        if (dateInput.value && dateInput.value.includes('/Date(') && dateInput.value.includes(')/')) {
+          const timestamp = dateInput.value.match(/\d+/)?.[0];
+          if (timestamp) {
+            return new Date(parseInt(timestamp)).toLocaleDateString();
+          }
+        }
+      }
+      // Handle string format
+      return new Date(dateInput).toLocaleDateString();
+    } catch {
+      return typeof dateInput === 'string' ? dateInput : '-';
+    }
+  };
+
+  const formatLastBootTime = (dateString: string) => {
+    try {
+      // Handle .NET Date format like "/Date(1750298266500)/"
+      if (dateString.includes('/Date(') && dateString.includes(')/')) {
+        const timestamp = dateString.match(/\d+/)?.[0];
+        if (timestamp) {
+          return new Date(parseInt(timestamp)).toLocaleDateString();
+        }
+      }
       return new Date(dateString).toLocaleDateString();
     } catch {
       return dateString;
@@ -120,6 +150,12 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                 </TableHead>
                 <TableHead
                   className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('LastBootUpTime')}
+                >
+                  Last Boot Time <SortIcon column="LastBootUpTime" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('TotalRAMGB')}
                 >
                   RAM <SortIcon column="TotalRAMGB" />
@@ -155,6 +191,9 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   <TableCell>{device.WindowsVersion}</TableCell>
                   <TableCell>
                     {device.CollectionDate ? formatDate(device.CollectionDate) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {device.LastBootUpTime ? formatLastBootTime(device.LastBootUpTime) : '-'}
                   </TableCell>
                   <TableCell>{formatGB(device.TotalRAMGB)}</TableCell>
                   <TableCell>
