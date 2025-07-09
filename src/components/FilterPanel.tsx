@@ -1,10 +1,44 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Device, FilterState } from '@/types/device';
 import { Filter } from 'lucide-react';
+
+interface CommunityCheckboxProps {
+  id: string;
+  checked: boolean;
+  indeterminate: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
+
+const CommunityCheckbox: React.FC<CommunityCheckboxProps> = ({ 
+  id, 
+  checked, 
+  indeterminate, 
+  onCheckedChange 
+}) => {
+  const checkboxRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (checkboxRef.current) {
+      const input = checkboxRef.current.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      if (input) {
+        input.indeterminate = indeterminate;
+      }
+    }
+  }, [indeterminate]);
+
+  return (
+    <Checkbox
+      ref={checkboxRef}
+      id={id}
+      checked={checked}
+      onCheckedChange={onCheckedChange}
+    />
+  );
+};
 
 interface FilterPanelProps {
   devices: Device[];
@@ -65,6 +99,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       ? [...filters.location, location]
       : filters.location.filter(l => l !== location);
     onFiltersChange({ ...filters, location: newLocations });
+  };
+
+  const handleCommunityChange = (community: string, checked: boolean) => {
+    const communityLocations = locationGroups[community as keyof typeof locationGroups] || [];
+    const availableCommunityLocations = communityLocations.filter(loc => locations.includes(loc));
+    
+    let newLocations;
+    if (checked) {
+      // Add all community locations that aren't already selected
+      newLocations = [...new Set([...filters.location, ...availableCommunityLocations])];
+    } else {
+      // Remove all community locations
+      newLocations = filters.location.filter(l => !availableCommunityLocations.includes(l));
+    }
+    onFiltersChange({ ...filters, location: newLocations });
+  };
+
+  const isCommunitySelected = (community: string) => {
+    const communityLocations = locationGroups[community as keyof typeof locationGroups] || [];
+    const availableCommunityLocations = communityLocations.filter(loc => locations.includes(loc));
+    return availableCommunityLocations.length > 0 && 
+           availableCommunityLocations.every(loc => filters.location.includes(loc));
+  };
+
+  const isCommunityPartiallySelected = (community: string) => {
+    const communityLocations = locationGroups[community as keyof typeof locationGroups] || [];
+    const availableCommunityLocations = communityLocations.filter(loc => locations.includes(loc));
+    const selectedCount = availableCommunityLocations.filter(loc => filters.location.includes(loc)).length;
+    return selectedCount > 0 && selectedCount < availableCommunityLocations.length;
   };
 
   return (
@@ -194,10 +257,24 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <div className="space-y-3 max-h-48 overflow-y-auto border rounded-md p-3">
               {Object.entries(locationGroups).map(([groupName, groupLocations]) => (
                 <div key={groupName} className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {groupName}
-                  </h4>
-                  <div className="space-y-1 pl-2">
+                   {/* Community Group Checkbox */}
+                   <div className="flex items-center space-x-2 border-b border-muted pb-1">
+                     <CommunityCheckbox
+                       id={`community-${groupName}`}
+                       checked={isCommunitySelected(groupName)}
+                       indeterminate={isCommunityPartiallySelected(groupName)}
+                       onCheckedChange={(checked) => handleCommunityChange(groupName, !!checked)}
+                     />
+                     <label 
+                       htmlFor={`community-${groupName}`}
+                       className="text-sm font-semibold cursor-pointer text-foreground"
+                     >
+                       {groupName}
+                     </label>
+                   </div>
+                  
+                  {/* Individual Location Checkboxes */}
+                  <div className="space-y-1 pl-6">
                     {groupLocations.filter(loc => locations.includes(loc)).map(location => (
                       <div key={location} className="flex items-center space-x-2">
                         <Checkbox
