@@ -21,6 +21,7 @@ export interface Device {
   issues: string[];
   location?: string;
   CollectionDate?: string;
+  category?: string;
   
   // Raw properties for details view
   [key: string]: any;
@@ -32,6 +33,7 @@ export interface FilterState {
   secureBootEnabled: 'all' | 'enabled' | 'disabled';
   lowStorage: 'all' | 'low' | 'sufficient';
   joinType: 'all' | 'Hybrid' | 'AzureAD' | 'OnPremAD' | 'None';
+  deviceCategory: 'all' | 'Desktop' | 'Laptop' | 'Other';
   location: string[];
 }
 

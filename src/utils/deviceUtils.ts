@@ -1,6 +1,51 @@
 
 import { Device, FilterState } from '@/types/device';
 
+const deviceCategoryMap: Record<string, string> = {
+  'OptiPlex 7070': 'Desktop',
+  'Latitude 5400': 'Laptop',
+  'Latitude 5420': 'Laptop',
+  'OptiPlex Micro 7010': 'Desktop',
+  'Latitude 5440': 'Laptop',
+  'Latitude 5450': 'Laptop',
+  'Latitude 5430': 'Laptop',
+  'OptiPlex 5040': 'Desktop',
+  'OptiPlex 5060': 'Desktop',
+  'Precision 3660': 'Desktop',
+  'Dell Pro 14 Plus PB14250': 'Laptop',
+  'Latitude 7430': 'Laptop',
+  'Precision 3450': 'Desktop',
+  'Latitude 5480': 'Laptop',
+  'OptiPlex 5070': 'Desktop',
+  'Precision 3460': 'Desktop',
+  'OptiPlex 7050': 'Desktop',
+  'Precision 3440': 'Desktop',
+  'Latitude 5455': 'Laptop',
+  'Precision 3260': 'Desktop',
+  'OptiPlex 5080': 'Desktop',
+  'System Product Name': 'Other',
+  'XPS 13 7390': 'Laptop',
+  'Precision 5820 Tower X-Series': 'Desktop',
+  'OptiPlex 7060': 'Desktop',
+  'Precision Tower 3431': 'Desktop',
+  '0': 'Other',
+  'OptiPlex 7020': 'Desktop',
+  'Precision Tower 3420': 'Desktop',
+  'OptiPlex 5050': 'Desktop',
+  'Precision Tower 3430': 'Desktop',
+  'XPS 15 9570': 'Laptop',
+  'Precision 3630 Tower': 'Laptop',
+  'OptiPlex 7040': 'Desktop',
+  'Latitude 5430 Rugged': 'Laptop',
+  'MS-7B86': 'Desktop',
+  'VMware7,1': 'Other',
+  'Latitude 5414': 'Laptop'
+};
+
+const determineDeviceCategory = (model: string): string => {
+  return deviceCategoryMap[model] || 'Other';
+};
+
 export const parseInventoryFiles = async (files: FileList): Promise<Device[]> => {
   const devices: Device[] = [];
   
@@ -57,6 +102,7 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           issues: Array.isArray(deviceData.issues) ? deviceData.issues : [],
           location: determineLocation(deviceData),
           CollectionDate: collectionDateString,
+          category: determineDeviceCategory(deviceData.Model || ''),
           ...deviceData // Include all original properties
         };
         
@@ -102,6 +148,11 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
     
     // Join Type filter
     if (filters.joinType !== 'all' && device.JoinType !== filters.joinType) {
+      return false;
+    }
+    
+    // Device Category filter
+    if (filters.deviceCategory !== 'all' && device.category !== filters.deviceCategory) {
       return false;
     }
     

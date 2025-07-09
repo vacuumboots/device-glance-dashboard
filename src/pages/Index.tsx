@@ -20,6 +20,7 @@ const Index = () => {
     secureBootEnabled: 'all',
     lowStorage: 'all',
     joinType: 'all',
+    deviceCategory: 'all',
     location: []
   });
 
@@ -45,6 +46,7 @@ const Index = () => {
       secureBootEnabled: 'all',
       lowStorage: 'all',
       joinType: 'all',
+      deviceCategory: 'all',
       location: []
     });
   };

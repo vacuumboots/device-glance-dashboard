@@ -76,7 +76,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
           {/* Windows 11 Ready */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Windows 11 Ready</label>
@@ -165,6 +165,25 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <SelectItem value="AzureAD">Azure AD</SelectItem>
                 <SelectItem value="OnPremAD">On-Prem AD</SelectItem>
                 <SelectItem value="None">Workgroup</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Device Category */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Device Category</label>
+            <Select
+              value={filters.deviceCategory}
+              onValueChange={(value) => updateFilter('deviceCategory', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Desktop">Desktop</SelectItem>
+                <SelectItem value="Laptop">Laptop</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
