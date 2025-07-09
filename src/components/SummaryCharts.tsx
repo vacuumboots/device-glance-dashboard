@@ -1,41 +1,63 @@
-
 import React from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+import { Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Device, ChartData } from '@/types/device';
+import { Device } from '@/types/device';
 import { generateChartData } from '@/utils/chartUtils';
+import { TooltipProps } from 'recharts';
+import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+import { ChartData } from '@/types/device';
 
 interface SummaryChartsProps {
   devices: Device[];
 }
 
+interface CustomTooltipProps extends TooltipProps<ValueType, NameType> {
+  payload?: [
+    {
+      payload: ChartData;
+    },
+  ];
+}
+
 export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
   const windows11Data = generateChartData(devices, 'canUpgradeToWin11', {
-    'true': { name: 'Windows 11 Ready', color: '#22c55e' },
-    'false': { name: 'Not Ready', color: '#ef4444' }
+    true: { name: 'Windows 11 Ready', color: '#22c55e' },
+    false: { name: 'Not Ready', color: '#ef4444' },
   });
 
   const tpmData = generateChartData(devices, 'TPMVersion', {
     '2.0': { name: 'TPM 2.0', color: '#22c55e' },
     '1.2': { name: 'TPM 1.2', color: '#f59e0b' },
-    'None': { name: 'No TPM', color: '#ef4444' },
+    None: { name: 'No TPM', color: '#ef4444' },
     '': { name: 'Unknown', color: '#6b7280' },
-    'null': { name: 'Unknown', color: '#6b7280' }
+    null: { name: 'Unknown', color: '#6b7280' },
   });
 
   const secureBootData = generateChartData(devices, 'SecureBootEnabled', {
-    'true': { name: 'Enabled', color: '#22c55e' },
-    'false': { name: 'Disabled', color: '#ef4444' }
+    true: { name: 'Enabled', color: '#22c55e' },
+    false: { name: 'Disabled', color: '#ef4444' },
   });
 
   const joinTypeData = generateChartData(devices, 'JoinType', {
-    'Hybrid': { name: 'Hybrid', color: '#3b82f6' },
-    'AzureAD': { name: 'Azure AD', color: '#8b5cf6' },
-    'OnPremAD': { name: 'On-Prem AD', color: '#f59e0b' },
-    'None': { name: 'Workgroup', color: '#6b7280' }
+    Hybrid: { name: 'Hybrid', color: '#3b82f6' },
+    AzureAD: { name: 'Azure AD', color: '#8b5cf6' },
+    OnPremAD: { name: 'On-Prem AD', color: '#f59e0b' },
+    None: { name: 'Workgroup', color: '#6b7280' },
   });
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -48,11 +70,6 @@ export const SummaryCharts: React.FC<SummaryChartsProps> = ({ devices }) => {
       );
     }
     return null;
-  };
-
-  const CustomBarCell = (props: any) => {
-    const { fill, payload } = props;
-    return <Cell {...props} fill={payload.color || fill} />;
   };
 
   return (

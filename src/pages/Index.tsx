@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { SummaryCharts } from '@/components/SummaryCharts';
@@ -10,6 +9,7 @@ import { Device, FilterState } from '@/types/device';
 import { parseInventoryFiles, filterDevices } from '@/utils/deviceUtils';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const Index = () => {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -21,8 +21,10 @@ const Index = () => {
     lowStorage: 'all',
     joinType: 'all',
     deviceCategory: 'all',
-    location: []
+    location: [],
   });
+
+  const { toast } = useToast();
 
   const filteredDevices = useMemo(() => {
     return filterDevices(devices, filters);
@@ -31,9 +33,12 @@ const Index = () => {
   const handleFilesLoaded = (files: FileList) => {
     parseInventoryFiles(files)
       .then(setDevices)
-      .catch(error => {
-        console.error('Error parsing files:', error);
-        alert('Error loading inventory files. Please check the file format.');
+      .catch((error) => {
+        toast({
+          title: 'Error loading inventory files',
+          description: 'Please check the file format. ' + error.message,
+          variant: 'destructive',
+        });
       });
   };
 
@@ -47,7 +52,7 @@ const Index = () => {
       lowStorage: 'all',
       joinType: 'all',
       deviceCategory: 'all',
-      location: []
+      location: [],
     });
   };
 
@@ -84,20 +89,13 @@ const Index = () => {
             </div>
 
             {/* Filter Panel */}
-            <FilterPanel
-              devices={devices}
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
+            <FilterPanel devices={devices} filters={filters} onFiltersChange={setFilters} />
 
             {/* Export Buttons */}
             <ExportButtons devices={filteredDevices} />
 
             {/* Device Table */}
-            <DeviceTable
-              devices={filteredDevices}
-              onDeviceClick={setSelectedDevice}
-            />
+            <DeviceTable devices={filteredDevices} onDeviceClick={setSelectedDevice} />
 
             {/* Device Details Modal */}
             {selectedDevice && (

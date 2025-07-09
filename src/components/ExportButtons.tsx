@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,17 +11,17 @@ interface ExportButtonsProps {
 
 export const ExportButtons: React.FC<ExportButtonsProps> = ({ devices }) => {
   const handleExportHardwareHashes = () => {
-    const csvData = devices.map(device => ({
+    const csvData = devices.map((device) => ({
       ComputerName: device.ComputerName,
       SerialNumber: device.SerialNumber || '',
-      HardwareHash: device.HardwareHash
+      HardwareHash: device.HardwareHash,
     }));
-    
+
     exportToCSV(csvData, 'hardware-hashes.csv');
   };
 
   const handleExportFullData = () => {
-    const csvData = devices.map(device => ({
+    const csvData = devices.map((device) => ({
       ComputerName: device.ComputerName,
       Manufacturer: device.Manufacturer,
       Model: device.Model,
@@ -42,9 +41,9 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ devices }) => {
       CollectionDate: device.CollectionDate || '',
       Windows11Ready: device.canUpgradeToWin11,
       Issues: device.issues.join('; '),
-      Location: device.location || ''
+      Location: device.location || '',
     }));
-    
+
     exportToCSV(csvData, 'device-inventory.csv');
   };
 

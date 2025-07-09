@@ -1,4 +1,3 @@
-
 export interface Device {
   ComputerName: string;
   Manufacturer: string;
@@ -22,9 +21,9 @@ export interface Device {
   location?: string;
   CollectionDate?: string;
   category?: string;
-  
+
   // Raw properties for details view
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface FilterState {

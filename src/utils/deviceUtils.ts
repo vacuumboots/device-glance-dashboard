@@ -1,5 +1,14 @@
-
 import { Device, FilterState } from '@/types/device';
+
+const parseMsDate = (msDateString: string): string => {
+  if (!msDateString) return '';
+  const match = msDateString.match(/\/Date\((\d+)\)\\/);
+  if (match) {
+    const timestamp = parseInt(match[1], 10);
+    return new Date(timestamp).toLocaleString(); // Or format as needed
+  }
+  return msDateString; // Return original if format doesn't match
+};
 
 const deviceCategoryMap: Record<string, string> = {
   'OptiPlex 7070': 'Desktop',
@@ -39,7 +48,7 @@ const deviceCategoryMap: Record<string, string> = {
   'Latitude 5430 Rugged': 'Laptop',
   'MS-7B86': 'Desktop',
   'VMware7,1': 'Other',
-  'Latitude 5414': 'Laptop'
+  'Latitude 5414': 'Laptop',
 };
 
 const determineDeviceCategory = (model: string): string => {
@@ -48,29 +57,32 @@ const determineDeviceCategory = (model: string): string => {
 
 export const parseInventoryFiles = async (files: FileList): Promise<Device[]> => {
   const devices: Device[] = [];
-  
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const content = await file.text();
-    
+    const buffer = await file.arrayBuffer();
+    const decoder = new TextDecoder('utf-16le'); // Assuming UTF-16 Little Endian
+    const content = decoder.decode(buffer);
+
     try {
       const data = JSON.parse(content);
       const fileDevices = Array.isArray(data) ? data : [data];
-      
-      fileDevices.forEach(deviceData => {
+
+      fileDevices.forEach((deviceData) => {
         // Handle nested TPM info
         const tpmInfo = deviceData.TPMInfo || {};
         const tpmVersion = tpmInfo.TPMVersion || deviceData.TPMVersion || '';
-        
+
         // Handle nested SecureBoot info
         const secureBootStatus = deviceData.SecureBootStatus || {};
-        const secureBootEnabled = secureBootStatus.SecureBootEnabled !== undefined 
-          ? secureBootStatus.SecureBootEnabled 
-          : Boolean(deviceData.SecureBootEnabled);
-        
+        const secureBootEnabled =
+          secureBootStatus.SecureBootEnabled !== undefined
+            ? secureBootStatus.SecureBootEnabled
+            : Boolean(deviceData.SecureBootEnabled);
+
         // Handle collection date - try multiple possible field names and structures
         let collectionDateString = '';
-        
+
         // Try different possible field names and structures
         const possibleDateFields = [
           deviceData.CollectionDate?.DateTime,
@@ -83,41 +95,42 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           deviceData.Date,
           deviceData.Timestamp,
           deviceData.RunDate,
-          deviceData.GeneratedDate
+          deviceData.GeneratedDate,
         ];
-        
+
         // Find the first valid date
         for (const dateField of possibleDateFields) {
           if (dateField && typeof dateField === 'string' && dateField.trim() !== '') {
-            collectionDateString = dateField;
+            collectionDateString = parseMsDate(dateField);
             break;
           }
         }
-        
+
         // Debug logging for first few devices to understand data structure
-        if (deviceData.ComputerName && Math.random() < 0.01) { // Log ~1% of devices
-          console.log('Debug - Device:', deviceData.ComputerName, 'CollectionDate fields:', {
-            'CollectionDate': deviceData.CollectionDate,
-            'collectionDate': deviceData.collectionDate,
-            'LogDate': deviceData.LogDate,
-            'CreationDate': deviceData.CreationDate,
-            'DateTime': deviceData.DateTime,
-            'Date': deviceData.Date,
-            'Timestamp': deviceData.Timestamp,
-            'RunDate': deviceData.RunDate,
-            'GeneratedDate': deviceData.GeneratedDate,
-            'Selected': collectionDateString
-          });
-        }
-        
-        const lastBootUpTime = deviceData.LastBootUpTime || collectionDateString || '';
-        
+        // if (deviceData.ComputerName && Math.random() < 0.01) {
+        //   console.log('Debug - Device:', deviceData.ComputerName, 'CollectionDate fields:', {
+        //     CollectionDate: deviceData.CollectionDate,
+        //     collectionDate: deviceData.collectionDate,
+        //     LogDate: deviceData.LogDate,
+        //     CreationDate: deviceData.CreationDate,
+        //     DateTime: deviceData.DateTime,
+        //     Date: deviceData.Date,
+        //     Timestamp: deviceData.Timestamp,
+        //     RunDate: deviceData.RunDate,
+        //     GeneratedDate: deviceData.GeneratedDate,
+        //     Selected: collectionDateString,
+        //   });
+        // }
+
+        const lastBootUpTime = parseMsDate(deviceData.LastBootUpTime) || collectionDateString || '';
+
         // Check if device is already running Windows 11
         const osName = deviceData.OSName || '';
         const windowsVersion = deviceData.WindowsVersion || '';
-        const isWindows11 = osName.toLowerCase().includes('windows 11') || 
-                           windowsVersion.toLowerCase().includes('windows 11');
-        
+        const isWindows11 =
+          osName.toLowerCase().includes('windows 11') ||
+          windowsVersion.toLowerCase().includes('windows 11');
+
         // Process and normalize device data
         const device: Device = {
           ComputerName: deviceData.ComputerName || '',
@@ -142,101 +155,102 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           location: determineLocation(deviceData),
           CollectionDate: collectionDateString,
           category: determineDeviceCategory(deviceData.Model || ''),
-          ...deviceData // Include all original properties
+          ...deviceData, // Include all original properties
         };
-        
+
         devices.push(device);
       });
     } catch (error) {
-      console.error(`Error parsing file ${file.name}:`, error);
-      throw new Error(`Invalid JSON format in file: ${file.name}`);
+      throw new Error(
+        `Invalid JSON format in file: ${file.name}. Original error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
-  
+
   return devices;
 };
 
 export const filterDevices = (devices: Device[], filters: FilterState): Device[] => {
-  return devices.filter(device => {
+  return devices.filter((device) => {
     // Windows 11 Ready filter
     if (filters.windows11Ready !== 'all') {
       const isReady = device.canUpgradeToWin11;
       if (filters.windows11Ready === 'ready' && !isReady) return false;
       if (filters.windows11Ready === 'not-ready' && isReady) return false;
     }
-    
+
     // TPM filter
     if (filters.tpmPresent !== 'all') {
       const hasTPM = device.TPMVersion && device.TPMVersion !== 'None';
       if (filters.tpmPresent === 'present' && !hasTPM) return false;
       if (filters.tpmPresent === 'missing' && hasTPM) return false;
     }
-    
+
     // Secure Boot filter
     if (filters.secureBootEnabled !== 'all') {
       if (filters.secureBootEnabled === 'enabled' && !device.SecureBootEnabled) return false;
       if (filters.secureBootEnabled === 'disabled' && device.SecureBootEnabled) return false;
     }
-    
+
     // Storage filter
     if (filters.lowStorage !== 'all') {
       const hasLowStorage = device.FreeStorageGB < 30;
       if (filters.lowStorage === 'low' && !hasLowStorage) return false;
       if (filters.lowStorage === 'sufficient' && hasLowStorage) return false;
     }
-    
+
     // Join Type filter
     if (filters.joinType !== 'all' && device.JoinType !== filters.joinType) {
       return false;
     }
-    
+
     // Device Category filter
     if (filters.deviceCategory !== 'all' && device.category !== filters.deviceCategory) {
       return false;
     }
-    
+
     // Location filter
     if (filters.location.length > 0 && !filters.location.includes(device.location || '')) {
       return false;
     }
-    
+
     return true;
   });
 };
 
-const determineLocation = (deviceData: any): string => {
+const determineLocation = (deviceData: Device): string => {
   // Try to extract location from various possible fields
   if (deviceData.location) return deviceData.location;
   if (deviceData.Location) return deviceData.Location;
   if (deviceData.Site) return deviceData.Site;
   if (deviceData.Office) return deviceData.Office;
-  
+
   const ip = deviceData.InternalIP || '';
-  
+
   // Location mapping based on IP ranges
   const locationMappings = [
-    { name: "Red Deer Lake", range: "10.53." },
-    { name: "Heritage Heights", range: "10.51." },
-    { name: "Big Rock", range: "10.52." },
-    { name: "Westmount", range: "10.54." },
-    { name: "Okotoks Junior", range: "10.55." },
-    { name: "Percy Pegler", range: "10.56." },
-    { name: "Dr. Morris Gibson", range: "10.57." },
-    { name: "Millarville", range: "10.58." },
-    { name: "Longview", range: "10.141." },
-    { name: "Foothills Composite", range: "10.140." },
-    { name: "Spitzee", range: "10.142." },
-    { name: "Highwood", range: "10.143." },
-    { name: "Turner Valley", range: "10.145." },
-    { name: "Joe Clark", range: "10.146." },
-    { name: "Senator Reily", range: "10.147." },
-    { name: "Cayley", range: "10.148." },
-    { name: "Blackie", range: "10.149." },
-    { name: "C. Ian McLaren", range: "10.150." },
-    { name: "Oilfields", range: "10.151." },
-    { name: "Meadow Ridge", range: "10.60." }
+    { name: 'Red Deer Lake', range: '10.53.' },
+    { name: 'Heritage Heights', range: '10.51.' },
+    { name: 'Big Rock', range: '10.52.' },
+    { name: 'Westmount', range: '10.54.' },
+    { name: 'Okotoks Junior', range: '10.55.' },
+    { name: 'Percy Pegler', range: '10.56.' },
+    { name: 'Dr. Morris Gibson', range: '10.57.' },
+    { name: 'Millarville', range: '10.58.' },
+    { name: 'Longview', range: '10.141.' },
+    { name: 'Foothills Composite', range: '10.140.' },
+    { name: 'Spitzee', range: '10.142.' },
+    { name: 'Highwood', range: '10.143.' },
+    { name: 'Turner Valley', range: '10.145.' },
+    { name: 'Joe Clark', range: '10.146.' },
+    { name: 'Senator Reily', range: '10.147.' },
+    { name: 'Cayley', range: '10.148.' },
+    { name: 'Blackie', range: '10.149.' },
+    { name: 'C. Ian McLaren', range: '10.150.' },
+    { name: 'Oilfields', range: '10.151.' },
+    { name: 'Meadow Ridge', range: '10.60.' },
   ];
-  
+
   // Check IP against location ranges
   if (ip) {
     for (const location of locationMappings) {
@@ -245,6 +259,6 @@ const determineLocation = (deviceData: any): string => {
       }
     }
   }
-  
+
   return 'Unknown';
 };

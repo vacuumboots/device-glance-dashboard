@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,11 +15,11 @@ interface DeviceDetailsModalProps {
 export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
   device,
   isOpen,
-  onClose
+  onClose,
 }) => {
   const recommendations = getUpgradeRecommendations(device);
 
-  const formatValue = (value: any): string => {
+  const formatValue = (value: unknown): string => {
     if (value === null || value === undefined) return 'N/A';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (typeof value === 'number') return value.toString();
@@ -47,18 +46,28 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
     HardwareHash: 'Hardware Hash',
     SerialNumber: 'Serial Number',
     canUpgradeToWin11: 'Windows 11 Ready',
-    location: 'Location'
+    location: 'Location',
   };
 
   const primaryKeys = [
-    'ComputerName', 'Manufacturer', 'Model', 'OSName', 'WindowsVersion', 
-    'WindowsEdition', 'TotalRAMGB', 'TotalStorageGB', 'FreeStorageGB',
-    'TPMVersion', 'SecureBootEnabled', 'JoinType', 'canUpgradeToWin11'
+    'ComputerName',
+    'Manufacturer',
+    'Model',
+    'OSName',
+    'WindowsVersion',
+    'WindowsEdition',
+    'TotalRAMGB',
+    'TotalStorageGB',
+    'FreeStorageGB',
+    'TPMVersion',
+    'SecureBootEnabled',
+    'JoinType',
+    'canUpgradeToWin11',
   ];
 
   const getOtherProperties = () => {
     return Object.keys(device)
-      .filter(key => !primaryKeys.includes(key) && !['issues'].includes(key))
+      .filter((key) => !primaryKeys.includes(key) && !['issues'].includes(key))
       .sort();
   };
 
@@ -68,7 +77,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
         <DialogHeader>
           <DialogTitle>Device Details: {device.ComputerName}</DialogTitle>
         </DialogHeader>
-        
+
         <ScrollArea className="max-h-[70vh]">
           <div className="space-y-6">
             {/* Primary Information */}
@@ -78,7 +87,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {primaryKeys.map(key => (
+                  {primaryKeys.map((key) => (
                     <div key={key} className="flex justify-between items-center">
                       <span className="font-medium">{keyDisplayNames[key] || key}:</span>
                       <span className="text-right">
@@ -107,7 +116,10 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Badge variant={device.canUpgradeToWin11 ? 'default' : 'destructive'} className="text-lg py-2 px-4">
+                  <Badge
+                    variant={device.canUpgradeToWin11 ? 'default' : 'destructive'}
+                    className="text-lg py-2 px-4"
+                  >
                     {device.canUpgradeToWin11 ? 'Windows 11 Ready' : 'Not Ready for Windows 11'}
                   </Badge>
                 </div>
@@ -117,7 +129,9 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                     <h4 className="font-medium text-destructive mb-2">Issues Found:</h4>
                     <ul className="list-disc list-inside space-y-1 text-sm">
                       {device.issues.map((issue, index) => (
-                        <li key={index} className="text-muted-foreground">{issue}</li>
+                        <li key={index} className="text-muted-foreground">
+                          {issue}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -128,7 +142,9 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                     <h4 className="font-medium mb-2">Recommendations:</h4>
                     <ul className="list-disc list-inside space-y-1 text-sm">
                       {recommendations.map((rec, index) => (
-                        <li key={index} className="text-muted-foreground">{rec}</li>
+                        <li key={index} className="text-muted-foreground">
+                          {rec}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -144,7 +160,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                    {getOtherProperties().map(key => (
+                    {getOtherProperties().map((key) => (
                       <div key={key} className="flex justify-between items-center py-1">
                         <span className="font-medium">{keyDisplayNames[key] || key}:</span>
                         <span className="text-right text-muted-foreground break-all max-w-xs">
