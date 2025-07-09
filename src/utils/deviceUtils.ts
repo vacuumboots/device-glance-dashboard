@@ -68,10 +68,49 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           ? secureBootStatus.SecureBootEnabled 
           : Boolean(deviceData.SecureBootEnabled);
         
-        // Handle collection date
-        const collectionDate = deviceData.CollectionDate || {};
-        const lastBootUpTime = deviceData.LastBootUpTime || collectionDate.DateTime || '';
-        const collectionDateString = collectionDate.DateTime || deviceData.CollectionDate || '';
+        // Handle collection date - try multiple possible field names and structures
+        let collectionDateString = '';
+        
+        // Try different possible field names and structures
+        const possibleDateFields = [
+          deviceData.CollectionDate?.DateTime,
+          deviceData.CollectionDate?.Date,
+          deviceData.CollectionDate,
+          deviceData.collectionDate,
+          deviceData.LogDate,
+          deviceData.CreationDate,
+          deviceData.DateTime,
+          deviceData.Date,
+          deviceData.Timestamp,
+          deviceData.RunDate,
+          deviceData.GeneratedDate
+        ];
+        
+        // Find the first valid date
+        for (const dateField of possibleDateFields) {
+          if (dateField && typeof dateField === 'string' && dateField.trim() !== '') {
+            collectionDateString = dateField;
+            break;
+          }
+        }
+        
+        // Debug logging for first few devices to understand data structure
+        if (deviceData.ComputerName && Math.random() < 0.01) { // Log ~1% of devices
+          console.log('Debug - Device:', deviceData.ComputerName, 'CollectionDate fields:', {
+            'CollectionDate': deviceData.CollectionDate,
+            'collectionDate': deviceData.collectionDate,
+            'LogDate': deviceData.LogDate,
+            'CreationDate': deviceData.CreationDate,
+            'DateTime': deviceData.DateTime,
+            'Date': deviceData.Date,
+            'Timestamp': deviceData.Timestamp,
+            'RunDate': deviceData.RunDate,
+            'GeneratedDate': deviceData.GeneratedDate,
+            'Selected': collectionDateString
+          });
+        }
+        
+        const lastBootUpTime = deviceData.LastBootUpTime || collectionDateString || '';
         
         // Check if device is already running Windows 11
         const osName = deviceData.OSName || '';
