@@ -22,11 +22,11 @@ function createWindow() {
 
   // Load the app
   mainWindow.loadURL(
-    isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, 'index.html')}`
+    isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '..', 'index.html')}`
   );
 
-  // Open DevTools in development and temporarily in production for debugging
-  if (isDev || true) {
+  // Open DevTools in development
+  if (isDev) {
     mainWindow.webContents.openDevTools();
   }
 
