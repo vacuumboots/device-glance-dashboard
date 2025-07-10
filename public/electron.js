@@ -22,7 +22,7 @@ function createWindow() {
 
   // Load the app
   mainWindow.loadURL(
-    isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '../dist/index.html')}`
+    isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, 'index.html')}`
   );
 
   // Open DevTools in development
