@@ -1,7 +1,7 @@
 {
   "name": "device-glance-dashboard",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "A dashboard for monitoring device information",
   "author": "Device Glance Dashboard",
   "type": "module",
