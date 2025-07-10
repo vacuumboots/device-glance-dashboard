@@ -34,6 +34,7 @@ export interface FilterState {
   joinType: 'all' | 'Hybrid' | 'AzureAD' | 'OnPremAD' | 'None';
   deviceCategory: 'all' | 'Desktop' | 'Laptop' | 'Other';
   hashPresent: 'all' | 'present' | 'missing';
+  deviceModel: string;
   location: string[];
 }
 

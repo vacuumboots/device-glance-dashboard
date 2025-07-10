@@ -55,7 +55,9 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
 
   const formatGB = (gb: number) => `${gb.toFixed(1)} GB`;
 
-  const formatDate = (dateInput: string | any) => {
+  const formatDate = (
+    dateInput: string | { value: string; DisplayHint: number; DateTime: string }
+  ) => {
     try {
       // Handle CollectionDate object format
       if (typeof dateInput === 'object' && dateInput !== null) {
@@ -64,7 +66,11 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
           return new Date(dateInput.DateTime).toLocaleDateString();
         }
         // Fall back to parsing the value property (.NET Date format)
-        if (dateInput.value && dateInput.value.includes('/Date(') && dateInput.value.includes(')/')) {
+        if (
+          dateInput.value &&
+          dateInput.value.includes('/Date(') &&
+          dateInput.value.includes(')/')
+        ) {
           const timestamp = dateInput.value.match(/\d+/)?.[0];
           if (timestamp) {
             return new Date(parseInt(timestamp)).toLocaleDateString();

@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# Device Glance Dashboard
+
+A comprehensive Windows device inventory management system built with React, TypeScript, and Electron.
 
 ## Project info
 
@@ -54,11 +56,40 @@ npm run dev
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite** - Fast build tool and development server
+- **TypeScript** - Type-safe JavaScript with strict mode
+- **React 18** - Modern React with hooks and concurrent features
+- **shadcn-ui** - High-quality, accessible UI components
+- **Tailwind CSS** - Utility-first CSS framework
+- **Electron** - Desktop application framework
+- **Vitest** - Fast unit testing framework
+- **React Testing Library** - Component testing utilities
+
+## Features
+
+- 📊 **Device Inventory Management** - Upload and analyze Windows device data
+- 🔍 **Advanced Filtering** - 8 different filter types including device model, location, compliance status
+- 📈 **Summary Charts** - Visual analytics for device fleet composition
+- 📤 **Data Export** - CSV export functionality for filtered datasets
+- 🏢 **Location-Based Analysis** - Community grouping and IP-based location detection
+- 🔒 **Security Compliance** - TPM, Secure Boot, and Windows 11 readiness tracking
+- 🖥️ **Desktop Application** - Cross-platform Electron app
+
+## Testing
+
+Comprehensive testing framework with 81 tests covering:
+
+```bash
+npm test              # Watch mode development
+npm run test:run      # Single run for CI/CD
+npm run test:ui       # Visual test interface
+npm run test:coverage # Coverage reporting
+```
+
+- **Unit Tests** (29) - Utility functions and business logic
+- **Component Tests** (38) - UI components and interactions
+- **Integration Tests** (8) - Data flow and filtering workflows
+- **End-to-End Tests** (5) - Complete user scenarios
 
 ## How can I deploy this project?
 
@@ -74,8 +105,29 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
 
 ## Recent Changes
 
+### July 10, 2025 - Major Testing & Quality Implementation
+
+- **🧪 Comprehensive Testing Framework** - Implemented complete testing suite with 81 tests
+  - Unit tests for all utility functions (device parsing, filtering, export, charts)
+  - Component tests for UI interactions and accessibility
+  - Integration tests for filtering workflows and data flow
+  - End-to-end tests for complete user scenarios (IT audits, security compliance)
+- **⚙️ Test Configuration** - Added Vitest + React Testing Library + JSDOM setup
+- **🛡️ Enhanced Error Handling** - Comprehensive error handling for file uploads, data parsing, and UI interactions
+- **📋 Device Model Filter** - Added dynamic device model filtering with alphabetical sorting
+- **🔧 Code Quality** - ESLint compliance, Prettier formatting, TypeScript strict mode
+- **📚 Documentation** - Added comprehensive testing documentation and configuration summaries
+- **🚀 CI/CD Ready** - Test scripts and coverage reporting for automated workflows
+
 ### July 9, 2025
+
 - **Added Last Boot Time column** to the device inventory table with proper .NET Date format parsing
 - **Fixed Collection Date parsing** to handle complex object structure with nested date properties
 - **Added Hash Present filter** to filter devices based on whether they have a hardware hash in their records
 - Improved date formatting functions to handle various date formats from device exports
+
+## Documentation
+
+- 📋 **[Configuration Summary](./CONFIGURATION_SUMMARY.md)** - Detailed overview of all configuration files and testing setup
+- 🛡️ **[Error Handling Guide](./ERROR_HANDLING.md)** - Comprehensive error handling documentation
+- 🧪 **[Testing Guide](./src/__tests__/README.md)** - Complete testing framework documentation

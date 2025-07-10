@@ -10,6 +10,26 @@ interface ExportButtonsProps {
 }
 
 export const ExportButtons: React.FC<ExportButtonsProps> = ({ devices }) => {
+  const formatDate = (
+    dateValue: string | { value: string; DisplayHint: number; DateTime: string } | undefined
+  ): string => {
+    if (!dateValue) return '';
+
+    if (typeof dateValue === 'string') {
+      // Handle .NET DateTime format: /Date(1750397103953)/
+      const netDateMatch = dateValue.match(/\/Date\((\d+)\)\//);
+      if (netDateMatch) {
+        const timestamp = parseInt(netDateMatch[1], 10);
+        return new Date(timestamp).toISOString();
+      }
+      return dateValue;
+    } else if (typeof dateValue === 'object' && dateValue.DateTime) {
+      return dateValue.DateTime;
+    }
+
+    return '';
+  };
+
   const handleExportHardwareHashes = () => {
     const csvData = devices.map((device) => ({
       ComputerName: device.ComputerName,
@@ -37,8 +57,8 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ devices }) => {
       SecureBootEnabled: device.SecureBootEnabled,
       JoinType: device.JoinType,
       InternalIP: device.InternalIP,
-      LastBootUpTime: device.LastBootUpTime,
-      CollectionDate: device.CollectionDate || '',
+      LastBootUpTime: formatDate(device.LastBootUpTime),
+      CollectionDate: formatDate(device.CollectionDate),
       Windows11Ready: device.canUpgradeToWin11,
       Issues: device.issues.join('; '),
       Location: device.location || '',

@@ -22,6 +22,7 @@ const Index = () => {
     joinType: 'all',
     deviceCategory: 'all',
     hashPresent: 'all',
+    deviceModel: 'all',
     location: [],
   });
 
@@ -54,6 +55,7 @@ const Index = () => {
       joinType: 'all',
       deviceCategory: 'all',
       hashPresent: 'all',
+      deviceModel: 'all',
       location: [],
     });
   };

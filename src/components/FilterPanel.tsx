@@ -52,6 +52,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
   // Get unique locations from devices
   const locations = Array.from(new Set(devices.map((d) => d.location).filter(Boolean))).sort();
 
+  // Get unique device models from devices
+  const deviceModels = Array.from(new Set(devices.map((d) => d.Model).filter(Boolean))).sort();
+
   // Grouped locations mapping
   const locationGroups = {
     'High Country': ['C. Ian McLaren', 'Longview', 'Millarville', 'Oilfields', 'Turner Valley'],
@@ -118,7 +121,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-4">
           {/* Windows 11 Ready */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Windows 11 Ready</label>
@@ -244,6 +247,27 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="present">Present</SelectItem>
                 <SelectItem value="missing">Missing</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Device Model */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Device Model</label>
+            <Select
+              value={filters.deviceModel}
+              onValueChange={(value) => updateFilter('deviceModel', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {deviceModels.map((model) => (
+                  <SelectItem key={model} value={model}>
+                    {model}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

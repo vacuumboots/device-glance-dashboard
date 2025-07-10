@@ -1,0 +1,28 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Computer monitor -->
+  <rect x="4" y="6" width="24" height="16" rx="2" fill="#2563eb" stroke="#1e40af" stroke-width="1"/>
+  <rect x="6" y="8" width="20" height="12" rx="1" fill="#3b82f6"/>
+  
+  <!-- Screen content (grid pattern) -->
+  <rect x="8" y="10" width="2" height="2" fill="#60a5fa"/>
+  <rect x="11" y="10" width="2" height="2" fill="#60a5fa"/>
+  <rect x="14" y="10" width="2" height="2" fill="#60a5fa"/>
+  <rect x="17" y="10" width="2" height="2" fill="#60a5fa"/>
+  <rect x="20" y="10" width="2" height="2" fill="#60a5fa"/>
+  
+  <rect x="8" y="13" width="2" height="2" fill="#60a5fa"/>
+  <rect x="11" y="13" width="2" height="2" fill="#60a5fa"/>
+  <rect x="14" y="13" width="2" height="2" fill="#60a5fa"/>
+  <rect x="17" y="13" width="2" height="2" fill="#60a5fa"/>
+  <rect x="20" y="13" width="2" height="2" fill="#60a5fa"/>
+  
+  <rect x="8" y="16" width="2" height="2" fill="#60a5fa"/>
+  <rect x="11" y="16" width="2" height="2" fill="#60a5fa"/>
+  <rect x="14" y="16" width="2" height="2" fill="#60a5fa"/>
+  <rect x="17" y="16" width="2" height="2" fill="#60a5fa"/>
+  <rect x="20" y="16" width="2" height="2" fill="#60a5fa"/>
+  
+  <!-- Monitor stand -->
+  <rect x="14" y="22" width="4" height="3" fill="#64748b"/>
+  <rect x="10" y="25" width="12" height="2" rx="1" fill="#64748b"/>
+</svg>
