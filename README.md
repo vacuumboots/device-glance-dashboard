@@ -10,7 +10,7 @@ This project requires Node.js & npm - [install with nvm](https://github.com/nvm-
 
 ```sh
 # Step 1: Clone the repository
-git clone https://github.com/your-username/device-glance-dashboard.git
+git clone https://github.com/vacuumboots/device-glance-dashboard.git
 
 # Step 2: Navigate to the project directory
 cd device-glance-dashboard
