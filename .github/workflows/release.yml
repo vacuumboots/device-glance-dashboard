@@ -7,11 +7,8 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: windows-latest
+    timeout-minutes: 30
         
     steps:
       - name: Checkout code
@@ -30,36 +27,12 @@ jobs:
         run: npm run build
         
       - name: Build Electron app (Windows)
-        if: matrix.os == 'windows-latest'
-        run: npm run dist -- --win --x64 --publish=never
-        
-      - name: Build Electron app (macOS)
-        if: matrix.os == 'macos-latest'
-        run: npm run dist -- --mac --x64 --publish=never
-        
-      - name: Build Electron app (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: npm run dist -- --linux --x64 --publish=never
+        run: npx electron-builder --win --x64 --publish=never
         
       - name: Upload Windows artifacts
-        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist-electron/**/*
-          
-      - name: Upload macOS artifacts
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-build
-          path: dist-electron/**/*
-          
-      - name: Upload Linux artifacts
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-build
           path: dist-electron/**/*
 
   release:
@@ -74,29 +47,11 @@ jobs:
           name: windows-build
           path: ./windows-build
           
-      - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-build
-          path: ./macos-build
-          
-      - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-build
-          path: ./linux-build
-          
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
           files: |
             windows-build/**/*.exe
             windows-build/**/*.zip
-            macos-build/**/*.dmg
-            macos-build/**/*.zip
-            linux-build/**/*.AppImage
-            linux-build/**/*.tar.gz
-            linux-build/**/*.deb
-            linux-build/**/*.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
