@@ -21,12 +21,17 @@ function createWindow() {
   });
 
   // Load the app
-  mainWindow.loadURL(
-    isDev ? 'http://localhost:5173' : `file://${path.join(__dirname, '..', 'index.html')}`
-  );
-
-  // Open DevTools in development
   if (isDev) {
+    mainWindow.loadURL('http://localhost:5173');
+  } else {
+    const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
+    console.log('App path:', app.getAppPath());
+    console.log('Loading file:', indexPath);
+    mainWindow.loadFile(indexPath);
+  }
+
+  // Open DevTools in development and temporarily for debugging
+  if (isDev || true) {
     mainWindow.webContents.openDevTools();
   }
 
