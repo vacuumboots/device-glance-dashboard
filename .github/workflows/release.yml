@@ -5,6 +5,9 @@ on:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -29,29 +32,18 @@ jobs:
       - name: Build Electron app (Windows)
         run: npx electron-builder --win --x64 --publish=never
         
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: dist-electron/**/*
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-    
-    steps:
-      - name: Download Windows artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-build
-          path: ./windows-build
-          
+      - name: List build outputs
+        run: |
+          echo "Contents of dist-electron:"
+          dir dist-electron /s
+        shell: cmd
+        
       - name: Upload release assets
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            windows-build/**/*.exe
-            windows-build/**/*.zip
+            dist-electron/**/*.exe
+            dist-electron/**/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
