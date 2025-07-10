@@ -15,4 +15,5 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  base: './', // Use relative paths for Electron compatibility
 }));
