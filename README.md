@@ -2,55 +2,45 @@
 
 A comprehensive Windows device inventory management system built with React, TypeScript, and Electron.
 
-## Project info
+## How to Run This Project
 
-**URL**: https://lovable.dev/projects/89f46fc0-403a-4da7-8bef-e365b7c98375
+This project requires Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/89f46fc0-403a-4da7-8bef-e365b7c98375) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Development Setup
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Step 1: Clone the repository
+git clone https://github.com/your-username/device-glance-dashboard.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd device-glance-dashboard
 
-# Step 3: Install the necessary dependencies.
+# Step 3: Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Desktop Application
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Run the Electron desktop app:
 
-**Use GitHub Codespaces**
+```sh
+npm run electron:dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Development Options
+
+**Local Development**
+- Use your preferred IDE to edit files locally
+- Run `npm run dev` for web development
+- Run `npm run electron:dev` for desktop development
+
+**GitHub Codespaces**
+- Click the "Code" button on the repository page
+- Select "Codespaces" and create a new codespace
+- Edit files directly in the browser-based VS Code environment
 
 ## What technologies are used for this project?
 
@@ -91,17 +81,25 @@ npm run test:coverage # Coverage reporting
 - **Integration Tests** (8) - Data flow and filtering workflows
 - **End-to-End Tests** (5) - Complete user scenarios
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/89f46fc0-403a-4da7-8bef-e365b7c98375) and click on Share -> Publish.
+### Web Application
+Build the web version for deployment:
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+npm run build
+```
 
-Yes, you can!
+The built files will be in the `dist` directory and can be deployed to any static hosting service (Netlify, Vercel, GitHub Pages, etc.).
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Desktop Application
+Build the desktop application:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```sh
+npm run electron:build
+```
+
+This will create platform-specific executables in the `dist` directory.
 
 ## Recent Changes
 
