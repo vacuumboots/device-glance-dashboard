@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
+import { app } from 'electron';
 import { CredentialsService } from './credentialsService.js';
 
 export interface SyncProgress {
@@ -45,22 +46,34 @@ export class SyncService extends EventEmitter {
       } as SyncProgress);
 
       // Find the PowerShell script - try multiple locations
-      let scriptPath = path.join(process.cwd(), 'sync_inventory.ps1');
+      const possiblePaths = [
+        // Development: project root
+        path.join(process.cwd(), 'sync_inventory.ps1'),
+        // Packaged app: app directory (from files)
+        path.join(app.getAppPath(), 'sync_inventory.ps1'),
+        // Packaged app: resources directory (from extraResources)
+        path.join(process.resourcesPath || '', 'sync_inventory.ps1'),
+        // Packaged app: resources/app directory
+        path.join(process.resourcesPath || '', 'app', 'sync_inventory.ps1'),
+        // App directory
+        path.join(path.dirname(process.execPath), 'sync_inventory.ps1'),
+        // Resources directory (alternative)
+        path.join(path.dirname(process.execPath), 'resources', 'sync_inventory.ps1'),
+        // Resources/app directory (alternative)
+        path.join(path.dirname(process.execPath), 'resources', 'app', 'sync_inventory.ps1'),
+      ];
       
-      // If not found in current directory, check if we're in a packaged app
-      if (!existsSync(scriptPath)) {
-        const appPath = process.resourcesPath || process.cwd();
-        scriptPath = path.join(appPath, 'sync_inventory.ps1');
+      let scriptPath = '';
+      for (const pathToCheck of possiblePaths) {
+        if (existsSync(pathToCheck)) {
+          scriptPath = pathToCheck;
+          break;
+        }
       }
       
-      // If still not found, check the app directory
-      if (!existsSync(scriptPath)) {
-        scriptPath = path.join(path.dirname(process.execPath), 'sync_inventory.ps1');
-      }
-      
-      // Final check - if script doesn't exist, throw error
-      if (!existsSync(scriptPath)) {
-        throw new Error(`PowerShell script not found. Checked paths: ${process.cwd()}, ${process.resourcesPath || 'N/A'}, ${path.dirname(process.execPath)}`);
+      // If script doesn't exist in any location, throw error
+      if (!scriptPath) {
+        throw new Error(`PowerShell script not found. Checked paths: ${possiblePaths.join(', ')}`);
       }
 
       // Use PowerShell to run the script with stored credentials

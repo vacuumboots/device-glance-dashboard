@@ -103,6 +103,14 @@ This will create platform-specific executables in the `dist` directory.
 
 ## Recent Changes
 
+### July 14, 2025 - Fix PowerShell Script Path Resolution (v1.1.4)
+
+- **🔧 Enhanced Path Resolution** - Fixed PowerShell script path detection in packaged apps
+  - Added `extraResources` configuration to ensure script is accessible
+  - Enhanced path resolution with proper Electron app paths
+  - Added comprehensive path checking for both development and production
+  - Improved error messages showing all checked paths for troubleshooting
+
 ### July 14, 2025 - Fix PowerShell Script Packaging (v1.1.3)
 
 - **🔧 Fixed Script Packaging** - PowerShell script now included in installer build

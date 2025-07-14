@@ -1,7 +1,7 @@
 {
   "name": "device-glance-dashboard",
   "private": true,
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "A dashboard for monitoring device information",
   "author": "Device Glance Dashboard",
   "type": "module",
@@ -124,6 +124,12 @@
       "public/preload.js",
       "sync_inventory.ps1"
     ],
+    "extraResources": [
+      {
+        "from": "sync_inventory.ps1",
+        "to": "sync_inventory.ps1"
+      }
+    ],
     "win": {
       "target": "nsis",
       "requestedExecutionLevel": "asInvoker",
@@ -134,7 +140,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "extraMetadata": {
-      "version": "1.1.3"
+      "version": "1.1.4"
     }
   }
 }
