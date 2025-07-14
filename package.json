@@ -1,7 +1,7 @@
 {
   "name": "device-glance-dashboard",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A dashboard for monitoring device information",
   "author": "Device Glance Dashboard",
   "type": "module",
@@ -11,6 +11,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:electron-services": "tsc --project tsconfig.electron.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -19,10 +20,10 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "electron": "electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "build-electron": "npm run build && electron-builder",
-    "dist": "npm run build && electron-builder --win --x64 --publish=never"
+    "electron": "npm run build:electron-services && electron .",
+    "electron-dev": "concurrently \"npm run dev\" \"npm run build:electron-services && wait-on http://localhost:5173 && electron .\"",
+    "build-electron": "npm run build && npm run build:electron-services && electron-builder",
+    "dist": "npm run build && npm run build:electron-services && electron-builder --win --x64 --publish=never"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -59,6 +60,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.0",
     "embla-carousel-react": "^8.3.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
@@ -130,7 +132,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "extraMetadata": {
-      "version": "1.1.0"
+      "version": "1.1.1"
     }
   }
 }

@@ -1,12 +1,20 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { config } from 'dotenv';
+import { SyncService } from '../dist/electron-services/services/syncService.js';
+
+// Load environment variables from .env file
+config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Simple development check without external dependency
-const isDev = process.env.NODE_ENV === 'development' || process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath);
+const isDev = process.env.NODE_ENV === 'development' || /[\\/]electron-prebuilt[\\/]/.test(process.execPath);
+
+// Initialize sync service
+const syncService = new SyncService();
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -16,6 +24,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
     icon: path.join(__dirname, 'favicon.ico'),
   });
@@ -30,8 +39,8 @@ function createWindow() {
     mainWindow.loadFile(indexPath);
   }
 
-  // Open DevTools in development and temporarily for debugging
-  if (isDev || true) {
+  // Open DevTools in development
+  if (isDev) {
     mainWindow.webContents.openDevTools();
   }
 
@@ -39,8 +48,38 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false);
 }
 
+// Set up IPC handlers
+function setupIPC() {
+  ipcMain.handle('sync-start', async () => {
+    try {
+      await syncService.startSync();
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('sync-stop', () => {
+    syncService.stopSync();
+    return { success: true };
+  });
+
+  ipcMain.handle('sync-status', () => {
+    return { isRunning: syncService.getIsRunning() };
+  });
+
+  // Forward sync progress events to renderer
+  syncService.on('progress', (progress) => {
+    const allWindows = BrowserWindow.getAllWindows();
+    allWindows.forEach(window => {
+      window.webContents.send('sync-progress', progress);
+    });
+  });
+}
+
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
+  setupIPC();
   createWindow();
 
   app.on('activate', () => {

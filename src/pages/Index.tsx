@@ -10,6 +10,8 @@ import { parseInventoryFiles, filterDevices } from '@/utils/deviceUtils';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { SyncPanel } from '@/components/SyncPanel';
 
 const Index = () => {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -61,7 +63,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -71,13 +73,19 @@ const Index = () => {
               Explore and analyze your Windows device inventory data
             </p>
           </div>
-          {devices.length > 0 && (
-            <Button variant="outline" onClick={handleClearData}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Clear Data
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {devices.length > 0 && (
+              <Button variant="outline" onClick={handleClearData}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Clear Data
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Sync Panel */}
+        <SyncPanel />
 
         {/* File Upload */}
         <FileUpload onFilesLoaded={handleFilesLoaded} />
