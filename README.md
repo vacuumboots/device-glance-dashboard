@@ -103,6 +103,14 @@ This will create platform-specific executables in the `dist` directory.
 
 ## Recent Changes
 
+### July 14, 2025 - Fix PowerShell Script Packaging (v1.1.3)
+
+- **🔧 Fixed Script Packaging** - PowerShell script now included in installer build
+  - Added `sync_inventory.ps1` to electron-builder files configuration
+  - Enhanced script path resolution with multiple fallback locations
+  - Added better error messages for script not found scenarios
+  - Improved robustness for packaged application deployment
+
 ### July 14, 2025 - User-Friendly Configuration Interface (v1.1.2)
 
 - **🔧 Settings Panel** - Added intuitive settings interface for Azure credentials

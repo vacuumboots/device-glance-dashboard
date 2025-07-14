@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { CredentialsService } from './credentialsService.js';
 
 export interface SyncProgress {
@@ -43,7 +44,24 @@ export class SyncService extends EventEmitter {
         percentage: 0,
       } as SyncProgress);
 
-      const scriptPath = path.join(process.cwd(), 'sync_inventory.ps1');
+      // Find the PowerShell script - try multiple locations
+      let scriptPath = path.join(process.cwd(), 'sync_inventory.ps1');
+      
+      // If not found in current directory, check if we're in a packaged app
+      if (!existsSync(scriptPath)) {
+        const appPath = process.resourcesPath || process.cwd();
+        scriptPath = path.join(appPath, 'sync_inventory.ps1');
+      }
+      
+      // If still not found, check the app directory
+      if (!existsSync(scriptPath)) {
+        scriptPath = path.join(path.dirname(process.execPath), 'sync_inventory.ps1');
+      }
+      
+      // Final check - if script doesn't exist, throw error
+      if (!existsSync(scriptPath)) {
+        throw new Error(`PowerShell script not found. Checked paths: ${process.cwd()}, ${process.resourcesPath || 'N/A'}, ${path.dirname(process.execPath)}`);
+      }
 
       // Use PowerShell to run the script with stored credentials
       this.currentProcess = spawn(
