@@ -12,6 +12,7 @@ import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SyncPanel } from '@/components/SyncPanel';
+import { SettingsPanel } from '@/components/SettingsPanel';
 
 const Index = () => {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -83,6 +84,9 @@ const Index = () => {
             )}
           </div>
         </div>
+
+        {/* Settings Panel */}
+        <SettingsPanel />
 
         {/* Sync Panel */}
         <SyncPanel />

@@ -24,7 +24,7 @@ describe('SyncPanel', () => {
     });
 
     render(<SyncPanel />);
-    
+
     expect(screen.getByText('Azure Sync')).toBeInTheDocument();
     expect(screen.getByText(/Azure Sync is only available in the desktop app/)).toBeInTheDocument();
   });
@@ -37,7 +37,7 @@ describe('SyncPanel', () => {
     });
 
     render(<SyncPanel />);
-    
+
     expect(screen.getByText('Azure Sync')).toBeInTheDocument();
     expect(screen.getByText('Start Sync')).toBeInTheDocument();
     expect(screen.getByText(/This will download the latest device inventory/)).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('SyncPanel', () => {
     });
 
     render(<SyncPanel />);
-    
+
     expect(mockElectronAPI.getSyncStatus).toHaveBeenCalled();
   });
 });

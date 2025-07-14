@@ -1,6 +1,7 @@
-import { spawn } from 'node:child_process';
+import { spawn, ChildProcess } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import path from 'node:path';
+import { CredentialsService } from './credentialsService.js';
 
 export interface SyncProgress {
   stage: 'starting' | 'downloading' | 'processing' | 'complete' | 'error';
@@ -10,7 +11,13 @@ export interface SyncProgress {
 
 export class SyncService extends EventEmitter {
   private isRunning = false;
-  private currentProcess?: any;
+  private currentProcess?: ChildProcess;
+  private credentialsService: CredentialsService;
+
+  constructor() {
+    super();
+    this.credentialsService = new CredentialsService();
+  }
 
   async startSync(): Promise<void> {
     if (this.isRunning) {
@@ -18,49 +25,52 @@ export class SyncService extends EventEmitter {
     }
 
     this.isRunning = true;
-    
-    try {
-      // Check if environment variables are set
-      const requiredEnvVars = [
-        'AZURE_STORAGE_ACCOUNT_NAME',
-        'AZURE_STORAGE_CONTAINER_NAME', 
-        'AZURE_STORAGE_KEY'
-      ];
 
-      for (const envVar of requiredEnvVars) {
-        if (!process.env[envVar]) {
-          throw new Error(`Environment variable ${envVar} is not set`);
-        }
+    try {
+      // Check if credentials are stored
+      const credentials = await this.credentialsService.getCredentials();
+      if (!credentials) {
+        throw new Error('Azure credentials not configured. Please configure them in Settings.');
+      }
+
+      if (!credentials.accountName || !credentials.containerName || !credentials.accessKey) {
+        throw new Error('Incomplete Azure credentials. Please check your settings.');
       }
 
       this.emit('progress', {
         stage: 'starting',
         message: 'Starting Azure sync process...',
-        percentage: 0
+        percentage: 0,
       } as SyncProgress);
 
       const scriptPath = path.join(process.cwd(), 'sync_inventory.ps1');
-      
-      // Use PowerShell to run the script
-      this.currentProcess = spawn('powershell.exe', [
-        '-ExecutionPolicy', 'Bypass',
-        '-File', scriptPath
-      ], {
-        stdio: 'pipe',
-        env: { ...process.env }
-      });
+
+      // Use PowerShell to run the script with stored credentials
+      this.currentProcess = spawn(
+        'powershell.exe',
+        ['-ExecutionPolicy', 'Bypass', '-File', scriptPath],
+        {
+          stdio: 'pipe',
+          env: {
+            ...process.env,
+            AZURE_STORAGE_ACCOUNT_NAME: credentials.accountName,
+            AZURE_STORAGE_CONTAINER_NAME: credentials.containerName,
+            AZURE_STORAGE_KEY: credentials.accessKey,
+          },
+        }
+      );
 
       let outputBuffer = '';
 
-      this.currentProcess.stdout.on('data', (data: Buffer) => {
+      this.currentProcess.stdout?.on('data', (data: Buffer) => {
         outputBuffer += data.toString();
         this.processOutput(outputBuffer);
       });
 
-      this.currentProcess.stderr.on('data', (data: Buffer) => {
+      this.currentProcess.stderr?.on('data', (data: Buffer) => {
         const errorMessage = data.toString();
         console.error('PowerShell Error:', errorMessage);
-        
+
         this.emit('progress', {
           stage: 'error',
           message: `Error: ${errorMessage}`,
@@ -70,12 +80,12 @@ export class SyncService extends EventEmitter {
       this.currentProcess.on('close', (code: number) => {
         this.isRunning = false;
         this.currentProcess = undefined;
-        
+
         if (code === 0) {
           this.emit('progress', {
             stage: 'complete',
             message: 'Sync completed successfully',
-            percentage: 100
+            percentage: 100,
           } as SyncProgress);
         } else {
           this.emit('progress', {
@@ -84,7 +94,6 @@ export class SyncService extends EventEmitter {
           } as SyncProgress);
         }
       });
-
     } catch (error) {
       this.isRunning = false;
       this.emit('progress', {
@@ -96,7 +105,7 @@ export class SyncService extends EventEmitter {
 
   private processOutput(output: string): void {
     const lines = output.split('\n');
-    
+
     for (const line of lines) {
       const trimmedLine = line.trim();
       if (!trimmedLine) continue;
@@ -106,19 +115,19 @@ export class SyncService extends EventEmitter {
         this.emit('progress', {
           stage: 'downloading',
           message: 'Downloading files from Azure...',
-          percentage: 25
+          percentage: 25,
         } as SyncProgress);
       } else if (trimmedLine.includes('Processing unique files')) {
         this.emit('progress', {
           stage: 'processing',
           message: 'Processing unique files...',
-          percentage: 75
+          percentage: 75,
         } as SyncProgress);
       } else if (trimmedLine.includes('Sync complete')) {
         this.emit('progress', {
           stage: 'complete',
           message: 'Sync completed successfully',
-          percentage: 100
+          percentage: 100,
         } as SyncProgress);
       }
     }

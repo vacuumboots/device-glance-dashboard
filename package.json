@@ -1,7 +1,7 @@
 {
   "name": "device-glance-dashboard",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A dashboard for monitoring device information",
   "author": "Device Glance Dashboard",
   "type": "module",
@@ -120,7 +120,8 @@
     },
     "files": [
       "dist/**/*",
-      "public/electron.js"
+      "public/electron.js",
+      "public/preload.js"
     ],
     "win": {
       "target": "nsis",
@@ -132,7 +133,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "extraMetadata": {
-      "version": "1.1.1"
+      "version": "1.1.2"
     }
   }
 }

@@ -7,7 +7,7 @@ import Index from '../Index';
 
 // Mock the SyncPanel component
 vi.mock('../components/SyncPanel', () => ({
-  SyncPanel: () => <div data-testid="sync-panel">SyncPanel</div>
+  SyncPanel: () => <div data-testid="sync-panel">SyncPanel</div>,
 }));
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -39,13 +39,15 @@ describe('Index Page', () => {
 
     // Check for main title
     expect(screen.getByText('Windows Device Inventory Dashboard')).toBeInTheDocument();
-    
+
     // Check for description
-    expect(screen.getByText('Explore and analyze your Windows device inventory data')).toBeInTheDocument();
-    
+    expect(
+      screen.getByText('Explore and analyze your Windows device inventory data')
+    ).toBeInTheDocument();
+
     // Check for SyncPanel
     expect(screen.getByTestId('sync-panel')).toBeInTheDocument();
-    
+
     // Check for file upload component
     expect(screen.getByText(/drag and drop your inventory files here/i)).toBeInTheDocument();
   });

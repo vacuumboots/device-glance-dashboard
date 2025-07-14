@@ -4,12 +4,20 @@ export interface SyncProgress {
   percentage?: number;
 }
 
+export interface AzureCredentials {
+  accountName: string;
+  containerName: string;
+  accessKey: string;
+}
+
 export interface ElectronAPI {
   startSync: () => Promise<{ success: boolean; error?: string }>;
   stopSync: () => Promise<{ success: boolean }>;
   getSyncStatus: () => Promise<{ isRunning: boolean }>;
-  onSyncProgress: (callback: (event: any, progress: SyncProgress) => void) => void;
+  onSyncProgress: (callback: (event: unknown, progress: SyncProgress) => void) => void;
   removeAllListeners: (channel: string) => void;
+  saveAzureCredentials: (credentials: AzureCredentials) => Promise<void>;
+  getAzureCredentials: () => Promise<AzureCredentials | null>;
 }
 
 declare global {

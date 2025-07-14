@@ -31,10 +31,10 @@ export function SyncPanel() {
     checkStatus();
 
     // Listen for progress updates
-    const handleProgress = (event: any, progressData: SyncProgress) => {
+    const handleProgress = (event: unknown, progressData: SyncProgress) => {
       setProgress(progressData);
       setIsRunning(progressData.stage !== 'complete' && progressData.stage !== 'error');
-      
+
       if (progressData.stage === 'error') {
         setError(progressData.message);
       } else {
@@ -54,12 +54,12 @@ export function SyncPanel() {
       setError(null);
       setProgress(null);
       const result = await window.electronAPI.startSync();
-      
+
       if (!result.success) {
         setError(result.error || 'Failed to start sync');
         return;
       }
-      
+
       setIsRunning(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start sync');
@@ -107,7 +107,8 @@ export function SyncPanel() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Azure Sync is only available in the desktop app. Please use the desktop version to sync inventory data from Azure Storage.
+              Azure Sync is only available in the desktop app. Please use the desktop version to
+              sync inventory data from Azure Storage.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -125,18 +126,18 @@ export function SyncPanel() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button 
-            onClick={handleStartSync} 
+          <Button
+            onClick={handleStartSync}
             disabled={isRunning}
             className="flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             {isRunning ? 'Syncing...' : 'Start Sync'}
           </Button>
-          
+
           {isRunning && (
-            <Button 
-              onClick={handleStopSync} 
+            <Button
+              onClick={handleStopSync}
               variant="outline"
               size="sm"
               className="flex items-center gap-2"
@@ -151,11 +152,9 @@ export function SyncPanel() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               {getStageIcon(progress.stage)}
-              <span className="text-sm text-muted-foreground">
-                {progress.message}
-              </span>
+              <span className="text-sm text-muted-foreground">{progress.message}</span>
             </div>
-            
+
             {progress.percentage !== undefined && (
               <Progress value={progress.percentage} className="w-full" />
             )}
@@ -170,10 +169,13 @@ export function SyncPanel() {
         )}
 
         <div className="text-xs text-muted-foreground">
-          <p>This will download the latest device inventory from Azure Storage and process unique device files.</p>
+          <p>
+            This will download the latest device inventory from Azure Storage and process unique
+            device files.
+          </p>
           <p className="mt-1">
-            <strong>Note:</strong> Make sure environment variables are set:
-            AZURE_STORAGE_ACCOUNT_NAME, AZURE_STORAGE_CONTAINER_NAME, AZURE_STORAGE_KEY
+            <strong>Note:</strong> Make sure Azure credentials are configured in Settings panel
+            above.
           </p>
         </div>
       </CardContent>

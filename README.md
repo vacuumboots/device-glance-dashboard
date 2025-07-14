@@ -103,6 +103,30 @@ This will create platform-specific executables in the `dist` directory.
 
 ## Recent Changes
 
+### July 14, 2025 - User-Friendly Configuration Interface (v1.1.2)
+
+- **🔧 Settings Panel** - Added intuitive settings interface for Azure credentials
+  - Storage Account Name, Container Name, and Access Key input fields
+  - Show/hide toggle for sensitive access key
+  - Real-time validation and user feedback
+  - Clear error messages and success notifications
+- **🔒 Secure Credential Storage** - Implemented AES-256-GCM encryption for local credential storage
+  - Credentials encrypted and stored in user's data directory
+  - Automatic key generation and management per installation
+  - No credentials transmitted except to Azure for authentication
+- **📱 Enhanced User Experience** - Eliminated need for .env files and environment variables
+  - Users can now download executable installer and configure directly in-app
+  - Settings panel prominently placed above sync functionality
+  - Graceful fallbacks and clear guidance when credentials are missing
+- **🔄 Updated Sync Service** - Modified to use stored credentials instead of environment variables
+  - Reads encrypted credentials from secure storage
+  - Provides clear error messages if credentials not configured
+  - Maintains backward compatibility with existing PowerShell scripts
+- **🛡️ Security & Code Quality** - All linting issues resolved with proper TypeScript types
+  - Enhanced IPC handlers for credential management
+  - Proper error handling and user feedback
+  - Secure encryption implementation following best practices
+
 ### July 14, 2025 - System Verification & Environment Setup
 
 - **✅ Comprehensive System Verification** - Verified all project components work correctly

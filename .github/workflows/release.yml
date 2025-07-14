@@ -1,6 +1,8 @@
 name: Build and Release
 
 on:
+  push:
+    branches: [ main ]
   release:
     types: [published]
   workflow_dispatch:
@@ -29,6 +31,9 @@ jobs:
       - name: Build application
         run: npm run build
         
+      - name: Build Electron services
+        run: npm run build:electron-services
+        
       - name: Build Electron app (Windows)
         run: npx electron-builder --win --x64 --publish=never
         
@@ -46,6 +51,6 @@ jobs:
             dist-electron/*.exe
             dist-electron/*.blockmap
             dist-electron/*.yml
-          tag_name: ${{ github.event_name == 'workflow_dispatch' && 'v1.1.0' || github.ref_name }}
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && 'v1.1.2' || github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

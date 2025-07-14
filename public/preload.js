@@ -8,4 +8,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSyncStatus: () => ipcRenderer.invoke('sync-status'),
   onSyncProgress: (callback) => ipcRenderer.on('sync-progress', callback),
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+  saveAzureCredentials: (credentials) => ipcRenderer.invoke('save-azure-credentials', credentials),
+  getAzureCredentials: () => ipcRenderer.invoke('get-azure-credentials'),
 });

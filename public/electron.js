@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { config } from 'dotenv';
 import { SyncService } from '../dist/electron-services/services/syncService.js';
+import { CredentialsService } from '../dist/electron-services/services/credentialsService.js';
 
 // Load environment variables from .env file
 config();
@@ -13,8 +14,9 @@ const __dirname = path.dirname(__filename);
 // Simple development check without external dependency
 const isDev = process.env.NODE_ENV === 'development' || /[\\/]electron-prebuilt[\\/]/.test(process.execPath);
 
-// Initialize sync service
+// Initialize services
 const syncService = new SyncService();
+const credentialsService = new CredentialsService();
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -66,6 +68,24 @@ function setupIPC() {
 
   ipcMain.handle('sync-status', () => {
     return { isRunning: syncService.getIsRunning() };
+  });
+
+  ipcMain.handle('save-azure-credentials', async (event, credentials) => {
+    try {
+      await credentialsService.saveCredentials(credentials);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('get-azure-credentials', async () => {
+    try {
+      const credentials = await credentialsService.getCredentials();
+      return credentials;
+    } catch (error) {
+      return null;
+    }
   });
 
   // Forward sync progress events to renderer
