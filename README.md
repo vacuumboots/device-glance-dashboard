@@ -208,6 +208,20 @@ The `.github/workflows/release.yml` workflow:
 
 ## 📋 Recent Changes
 
+### July 24, 2025 - Architecture & UX Improvements (v1.1.6)
+
+- **🚀 Architecture Refactor** - Ported Azure sync from PowerShell to TypeScript
+  - Replaced `sync_inventory.ps1` with a native TypeScript implementation using the `@azure/storage-blob` SDK.
+  - Removed PowerShell dependency, making the application fully cross-platform and easier to maintain.
+  - Eliminated complex path resolution for packaged applications.
+- **🔒 Enhanced Security** - Refactored credential management to use Electron's `safeStorage`.
+  - Replaced custom AES-256-GCM encryption with the OS-native keychain/credential manager.
+  - Improves security and simplifies credential handling code.
+- **✨ Improved Sync UX** - Added granular progress and cancellation to Azure sync.
+  - Real-time feedback on download and processing progress (e.g., "Downloading file 5 of 50").
+  - Added a "Cancel" button to the UI to gracefully stop the sync process.
+  - Provides a much better user experience for large inventory syncs.
+
 ### July 24, 2025 - Device Search & UI Improvements (v1.1.5)
 
 - **🔍 Device Search Functionality** - Added search capability for device table

@@ -1,20 +1,21 @@
-import { spawn, ChildProcess } from 'node:child_process';
 import { EventEmitter } from 'node:events';
-import path from 'node:path';
-import { existsSync } from 'node:fs';
 import { app } from 'electron';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
+import { AbortController } from '@azure/abort-controller';
 import { CredentialsService } from './credentialsService.js';
 
 export interface SyncProgress {
-  stage: 'starting' | 'downloading' | 'processing' | 'complete' | 'error';
+  stage: 'starting' | 'downloading' | 'processing' | 'complete' | 'error' | 'cancelled';
   message: string;
   percentage?: number;
 }
 
 export class SyncService extends EventEmitter {
   private isRunning = false;
-  private currentProcess?: ChildProcess;
   private credentialsService: CredentialsService;
+  private abortController: AbortController | null = null;
 
   constructor() {
     super();
@@ -23,153 +24,142 @@ export class SyncService extends EventEmitter {
 
   async startSync(): Promise<void> {
     if (this.isRunning) {
-      throw new Error('Sync is already running');
+      this.emit('progress', {
+        stage: 'error',
+        message: 'Sync is already in progress.',
+      } as SyncProgress);
+      return;
     }
 
     this.isRunning = true;
+    this.abortController = new AbortController();
+    this.emit('progress', { stage: 'starting', message: 'Starting sync...', percentage: 0 } as SyncProgress);
 
     try {
-      // Check if credentials are stored
       const credentials = await this.credentialsService.getCredentials();
-      if (!credentials) {
+      if (!credentials?.accountName || !credentials?.containerName || !credentials?.accessKey) {
         throw new Error('Azure credentials not configured. Please configure them in Settings.');
       }
 
-      if (!credentials.accountName || !credentials.containerName || !credentials.accessKey) {
-        throw new Error('Incomplete Azure credentials. Please check your settings.');
-      }
-
-      this.emit('progress', {
-        stage: 'starting',
-        message: 'Starting Azure sync process...',
-        percentage: 0,
-      } as SyncProgress);
-
-      // Find the PowerShell script - try multiple locations
-      const possiblePaths = [
-        // Development: project root
-        path.join(process.cwd(), 'sync_inventory.ps1'),
-        // Packaged app: app directory (from files)
-        path.join(app.getAppPath(), 'sync_inventory.ps1'),
-        // Packaged app: resources directory (from extraResources)
-        path.join(process.resourcesPath || '', 'sync_inventory.ps1'),
-        // Packaged app: resources/app directory
-        path.join(process.resourcesPath || '', 'app', 'sync_inventory.ps1'),
-        // App directory
-        path.join(path.dirname(process.execPath), 'sync_inventory.ps1'),
-        // Resources directory (alternative)
-        path.join(path.dirname(process.execPath), 'resources', 'sync_inventory.ps1'),
-        // Resources/app directory (alternative)
-        path.join(path.dirname(process.execPath), 'resources', 'app', 'sync_inventory.ps1'),
-      ];
-
-      let scriptPath = '';
-      for (const pathToCheck of possiblePaths) {
-        if (existsSync(pathToCheck)) {
-          scriptPath = pathToCheck;
-          break;
-        }
-      }
-
-      // If script doesn't exist in any location, throw error
-      if (!scriptPath) {
-        throw new Error(`PowerShell script not found. Checked paths: ${possiblePaths.join(', ')}`);
-      }
-
-      // Use PowerShell to run the script with stored credentials
-      this.currentProcess = spawn(
-        'powershell.exe',
-        ['-ExecutionPolicy', 'Bypass', '-File', scriptPath],
-        {
-          stdio: 'pipe',
-          env: {
-            ...process.env,
-            AZURE_STORAGE_ACCOUNT_NAME: credentials.accountName,
-            AZURE_STORAGE_CONTAINER_NAME: credentials.containerName,
-            AZURE_STORAGE_KEY: credentials.accessKey,
-          },
-        }
+      const sharedKeyCredential = new StorageSharedKeyCredential(
+        credentials.accountName,
+        credentials.accessKey
       );
+      const blobServiceClient = new BlobServiceClient(
+        `https://${credentials.accountName}.blob.core.windows.net`,
+        sharedKeyCredential
+      );
+      const containerClient = blobServiceClient.getContainerClient(credentials.containerName);
 
-      let outputBuffer = '';
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const downloadPath = path.join(app.getPath('userData'), 'data', 'downloads', timestamp);
+      await fs.mkdir(downloadPath, { recursive: true });
 
-      this.currentProcess.stdout?.on('data', (data: Buffer) => {
-        outputBuffer += data.toString();
-        this.processOutput(outputBuffer);
-      });
-
-      this.currentProcess.stderr?.on('data', (data: Buffer) => {
-        const errorMessage = data.toString();
-        console.error('PowerShell Error:', errorMessage);
-
-        this.emit('progress', {
-          stage: 'error',
-          message: `Error: ${errorMessage}`,
-        } as SyncProgress);
-      });
-
-      this.currentProcess.on('close', (code: number) => {
-        this.isRunning = false;
-        this.currentProcess = undefined;
-
-        if (code === 0) {
-          this.emit('progress', {
-            stage: 'complete',
-            message: 'Sync completed successfully',
-            percentage: 100,
-          } as SyncProgress);
-        } else {
-          this.emit('progress', {
-            stage: 'error',
-            message: `Sync failed with exit code ${code}`,
-          } as SyncProgress);
-        }
-      });
-    } catch (error) {
-      this.isRunning = false;
       this.emit('progress', {
-        stage: 'error',
-        message: `Failed to start sync: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        stage: 'downloading',
+        message: 'Listing inventory files...',
+        percentage: 5,
       } as SyncProgress);
-    }
-  }
 
-  private processOutput(output: string): void {
-    const lines = output.split('\n');
+      const blobs = [];
+      for await (const blob of containerClient.listBlobsFlat()) {
+        blobs.push(blob.name);
+      }
 
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) continue;
-
-      // Parse different stages based on output
-      if (trimmedLine.includes('Downloading inventory files')) {
+      let downloadedCount = 0;
+      for (const blobName of blobs) {
+        if (this.abortController.signal.aborted) {
+          throw new Error('Sync cancelled by user.');
+        }
+        const blobClient = containerClient.getBlobClient(blobName);
+        const downloadBlockBlobResponse = await blobClient.downloadToBuffer({ 
+            abortSignal: this.abortController.signal
+        });
+        const filePath = path.join(downloadPath, blobName);
+        await fs.writeFile(filePath, downloadBlockBlobResponse);
+        downloadedCount++;
         this.emit('progress', {
           stage: 'downloading',
-          message: 'Downloading files from Azure...',
-          percentage: 25,
-        } as SyncProgress);
-      } else if (trimmedLine.includes('Processing unique files')) {
-        this.emit('progress', {
-          stage: 'processing',
-          message: 'Processing unique files...',
-          percentage: 75,
-        } as SyncProgress);
-      } else if (trimmedLine.includes('Sync complete')) {
-        this.emit('progress', {
-          stage: 'complete',
-          message: 'Sync completed successfully',
-          percentage: 100,
+          message: `Downloading file ${downloadedCount} of ${blobs.length}...`,
+          percentage: 5 + Math.round((downloadedCount / blobs.length) * 55),
         } as SyncProgress);
       }
+
+      this.emit('progress', {
+        stage: 'processing',
+        message: 'Processing unique files...',
+        percentage: 60,
+      } as SyncProgress);
+
+      const uniquePath = path.join(app.getPath('userData'), 'data', 'unique', timestamp);
+      await fs.mkdir(uniquePath, { recursive: true });
+
+      const files = await fs.readdir(downloadPath);
+      const deviceFiles: { [key: string]: string[] } = {};
+
+      for (const file of files) {
+        if (path.extname(file) === '.json') {
+          const deviceId = file.split('_')[0];
+          if (!deviceFiles[deviceId]) {
+            deviceFiles[deviceId] = [];
+          }
+          deviceFiles[deviceId].push(file);
+        }
+      }
+
+      let processedCount = 0;
+      const deviceIds = Object.keys(deviceFiles);
+      for (const deviceId of deviceIds) {
+        if (this.abortController.signal.aborted) {
+            throw new Error('Sync cancelled by user.');
+        }
+        const deviceSpecificFiles = deviceFiles[deviceId].sort().reverse();
+        const latestFile = deviceSpecificFiles[0];
+        const sourcePath = path.join(downloadPath, latestFile);
+        const destPath = path.join(uniquePath, latestFile);
+        await fs.copyFile(sourcePath, destPath);
+        processedCount++;
+        this.emit('progress', {
+            stage: 'processing',
+            message: `Processing device ${processedCount} of ${deviceIds.length}...`,
+            percentage: 60 + Math.round((processedCount / deviceIds.length) * 35),
+          } as SyncProgress);
+      }
+
+      const uniqueBaseDir = path.join(app.getPath('userData'), 'data', 'unique');
+      const dateFolders = await fs.readdir(uniqueBaseDir);
+      const indexFile = path.join(uniqueBaseDir, 'index.json');
+      await fs.writeFile(indexFile, JSON.stringify(dateFolders.sort().reverse()));
+
+      this.emit('progress', {
+        stage: 'complete',
+        message: 'Sync completed successfully.',
+        percentage: 100,
+      } as SyncProgress);
+    } catch (error) {
+        if (error.name === 'AbortError' || (error.message && error.message.includes('Sync cancelled'))) {
+            this.emit('progress', {
+              stage: 'cancelled',
+              message: 'Sync was cancelled.',
+            } as SyncProgress);
+          } else {
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+            this.emit('progress', {
+              stage: 'error',
+              message: `Sync failed: ${errorMessage}`,
+            } as SyncProgress);
+          }
+    } finally {
+      this.isRunning = false;
+      this.abortController = null;
     }
   }
 
   stopSync(): void {
-    if (this.currentProcess) {
-      this.currentProcess.kill();
-      this.currentProcess = undefined;
+    if (this.isRunning && this.abortController) {
+      this.abortController.abort();
+      console.log('Sync cancellation requested.');
     }
-    this.isRunning = false;
   }
 
   getIsRunning(): boolean {

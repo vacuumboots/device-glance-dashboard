@@ -26,6 +26,8 @@
     "dist": "npm run build && npm run build:electron-services && electron-builder --win --x64 --publish=never"
   },
   "dependencies": {
+    "@azure/abort-controller": "^2.1.2",
+    "@azure/storage-blob": "^12.28.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",

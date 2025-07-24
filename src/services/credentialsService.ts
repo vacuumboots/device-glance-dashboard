@@ -1,7 +1,6 @@
-import { app } from 'electron';
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { app, safeStorage } from 'electron';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 
 export interface AzureCredentials {
   accountName: string;
@@ -9,80 +8,37 @@ export interface AzureCredentials {
   accessKey: string;
 }
 
-const ALGORITHM = 'aes-256-gcm';
-const KEY_LENGTH = 32;
-const IV_LENGTH = 16;
-const TAG_LENGTH = 16;
-
 export class CredentialsService {
   private credentialsPath: string;
-  private keyPath: string;
 
   constructor() {
-    const userDataPath = app.getPath('userData');
-    this.credentialsPath = join(userDataPath, 'credentials.enc');
-    this.keyPath = join(userDataPath, 'key.enc');
-  }
-
-  private async getOrCreateKey(): Promise<Buffer> {
-    try {
-      const keyData = await readFile(this.keyPath);
-      return keyData;
-    } catch {
-      const key = randomBytes(KEY_LENGTH);
-      await mkdir(join(this.keyPath, '..'), { recursive: true });
-      await writeFile(this.keyPath, key);
-      return key;
-    }
-  }
-
-  private async encrypt(data: string): Promise<Buffer> {
-    const key = await this.getOrCreateKey();
-    const iv = randomBytes(IV_LENGTH);
-    const cipher = createCipheriv(ALGORITHM, key, iv);
-
-    let encrypted = cipher.update(data, 'utf8');
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-
-    const tag = cipher.getAuthTag();
-
-    return Buffer.concat([iv, tag, encrypted]);
-  }
-
-  private async decrypt(encryptedData: Buffer): Promise<string> {
-    const key = await this.getOrCreateKey();
-    const iv = encryptedData.slice(0, IV_LENGTH);
-    const tag = encryptedData.slice(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
-    const encrypted = encryptedData.slice(IV_LENGTH + TAG_LENGTH);
-
-    const decipher = createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(tag);
-
-    let decrypted = decipher.update(encrypted);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-
-    return decrypted.toString('utf8');
+    this.credentialsPath = path.join(app.getPath('userData'), 'credentials.json');
   }
 
   async saveCredentials(credentials: AzureCredentials): Promise<void> {
     const credentialsJson = JSON.stringify(credentials);
-    const encryptedData = await this.encrypt(credentialsJson);
-    await writeFile(this.credentialsPath, encryptedData);
+    const encryptedCredentials = safeStorage.encryptString(credentialsJson);
+    await fs.writeFile(this.credentialsPath, encryptedCredentials);
   }
 
   async getCredentials(): Promise<AzureCredentials | null> {
     try {
-      const encryptedData = await readFile(this.credentialsPath);
-      const decryptedJson = await this.decrypt(encryptedData);
-      return JSON.parse(decryptedJson);
-    } catch {
+      const encryptedCredentials = await fs.readFile(this.credentialsPath);
+      const decryptedCredentials = safeStorage.decryptString(encryptedCredentials);
+      return JSON.parse(decryptedCredentials);
+    } catch (error) {
+      // It's likely the file doesn't exist, which is fine.
+      // Log other errors for debugging.
+      if (error.code !== 'ENOENT') {
+        console.error('Failed to read or decrypt credentials:', error);
+      }
       return null;
     }
   }
 
   async hasCredentials(): Promise<boolean> {
     try {
-      await readFile(this.credentialsPath);
+      await fs.access(this.credentialsPath);
       return true;
     } catch {
       return false;

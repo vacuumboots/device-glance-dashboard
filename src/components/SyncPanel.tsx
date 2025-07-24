@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Square, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Download, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SyncProgress } from '@/types/electron';
 
@@ -12,13 +12,11 @@ export function SyncPanel() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if running in Electron environment
     if (!window.electronAPI) {
       setError('This feature is only available in the desktop app');
       return;
     }
 
-    // Get initial sync status
     const checkStatus = async () => {
       try {
         const status = await window.electronAPI.getSyncStatus();
@@ -30,10 +28,13 @@ export function SyncPanel() {
 
     checkStatus();
 
-    // Listen for progress updates
     const handleProgress = (event: unknown, progressData: SyncProgress) => {
       setProgress(progressData);
-      setIsRunning(progressData.stage !== 'complete' && progressData.stage !== 'error');
+      setIsRunning(
+        progressData.stage !== 'complete' &&
+          progressData.stage !== 'error' &&
+          progressData.stage !== 'cancelled'
+      );
 
       if (progressData.stage === 'error') {
         setError(progressData.message);
@@ -69,8 +70,6 @@ export function SyncPanel() {
   const handleStopSync = async () => {
     try {
       await window.electronAPI.stopSync();
-      setIsRunning(false);
-      setProgress(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop sync');
     }
@@ -79,21 +78,21 @@ export function SyncPanel() {
   const getStageIcon = (stage: SyncProgress['stage']) => {
     switch (stage) {
       case 'starting':
+      case 'processing':
         return <Loader2 className="w-4 h-4 animate-spin" />;
       case 'downloading':
         return <Download className="w-4 h-4" />;
-      case 'processing':
-        return <Loader2 className="w-4 h-4 animate-spin" />;
       case 'complete':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'error':
         return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case 'cancelled':
+        return <X className="w-4 h-4 text-yellow-500" />;
       default:
         return null;
     }
   };
 
-  // Show different content based on environment
   if (!window.electronAPI) {
     return (
       <Card>
@@ -138,12 +137,12 @@ export function SyncPanel() {
           {isRunning && (
             <Button
               onClick={handleStopSync}
-              variant="outline"
+              variant="destructive"
               size="sm"
               className="flex items-center gap-2"
             >
-              <Square className="w-4 h-4" />
-              Stop
+              <X className="w-4 h-4" />
+              Cancel
             </Button>
           )}
         </div>
