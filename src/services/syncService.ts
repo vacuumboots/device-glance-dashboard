@@ -3,7 +3,6 @@ import { app } from 'electron';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
-import { AbortController } from '@azure/abort-controller';
 import { CredentialsService } from './credentialsService.js';
 
 export interface SyncProgress {
@@ -11,6 +10,20 @@ export interface SyncProgress {
   message: string;
   percentage?: number;
 }
+
+// Helper function to convert a readable stream to a buffer
+async function streamToBuffer(readableStream: NodeJS.ReadableStream): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      readableStream.on('data', (data: Buffer | string) => {
+        chunks.push(Buffer.isBuffer(data) ? data : Buffer.from(data));
+      });
+      readableStream.on('end', () => {
+        resolve(Buffer.concat(chunks));
+      });
+      readableStream.on('error', reject);
+    });
+  }
 
 export class SyncService extends EventEmitter {
   private isRunning = false;
@@ -72,11 +85,17 @@ export class SyncService extends EventEmitter {
           throw new Error('Sync cancelled by user.');
         }
         const blobClient = containerClient.getBlobClient(blobName);
-        const downloadBlockBlobResponse = await blobClient.downloadToBuffer({ 
-            abortSignal: this.abortController.signal
+        const downloadResponse = await blobClient.download(0, undefined, {
+            abortSignal: this.abortController.signal,
         });
+
+        if (!downloadResponse.readableStreamBody) {
+            throw new Error(`Failed to download blob ${blobName}: No readable stream.`);
+        }
+
+        const downloadedData = await streamToBuffer(downloadResponse.readableStreamBody);
         const filePath = path.join(downloadPath, blobName);
-        await fs.writeFile(filePath, downloadBlockBlobResponse);
+        await fs.writeFile(filePath, downloadedData);
         downloadedCount++;
         this.emit('progress', {
           stage: 'downloading',
@@ -137,7 +156,7 @@ export class SyncService extends EventEmitter {
         percentage: 100,
       } as SyncProgress);
     } catch (error) {
-        if (error.name === 'AbortError' || (error.message && error.message.includes('Sync cancelled'))) {
+        if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('Sync cancelled'))) {
             this.emit('progress', {
               stage: 'cancelled',
               message: 'Sync was cancelled.',

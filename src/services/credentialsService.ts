@@ -29,7 +29,7 @@ export class CredentialsService {
     } catch (error) {
       // It's likely the file doesn't exist, which is fine.
       // Log other errors for debugging.
-      if (error.code !== 'ENOENT') {
+      if (error instanceof Error && 'code' in error && (error as any).code !== 'ENOENT') {
         console.error('Failed to read or decrypt credentials:', error);
       }
       return null;
