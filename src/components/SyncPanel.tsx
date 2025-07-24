@@ -4,12 +4,20 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { SyncProgress } from '@/types/electron';
+import { SyncProgress, SyncedFile } from '@/types/electron';
+import { parseInventoryFiles } from '@/utils/deviceUtils';
+import { Device } from '@/types/device';
+import { useToast } from '@/components/ui/use-toast';
 
-export function SyncPanel() {
+interface SyncPanelProps {
+  onFilesLoaded?: (devices: Device[]) => void;
+}
+
+export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!window.electronAPI) {
@@ -38,6 +46,10 @@ export function SyncPanel() {
 
       if (progressData.stage === 'error') {
         setError(progressData.message);
+      } else if (progressData.stage === 'complete') {
+        setError(null);
+        // Automatically load synced files after successful sync
+        loadSyncedFiles();
       } else {
         setError(null);
       }
@@ -72,6 +84,66 @@ export function SyncPanel() {
       await window.electronAPI.stopSync();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop sync');
+    }
+  };
+
+  const loadSyncedFiles = async () => {
+    if (!window.electronAPI || !onFilesLoaded) return;
+
+    try {
+      const result = await window.electronAPI.loadSyncedFiles();
+      
+      if (!result.success) {
+        toast({
+          title: 'Failed to load synced files',
+          description: result.error || 'Unknown error occurred',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!result.files || result.files.length === 0) {
+        toast({
+          title: 'No synced files found',
+          description: 'The sync completed but no files were found to load.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Convert SyncedFile[] to FileList-like structure for parseInventoryFiles
+      const fileListLike: FileList = {
+        length: result.files.length,
+        item: (index: number) => {
+          const syncedFile = result.files![index];
+          if (!syncedFile) return null;
+          
+          // Create a File-like object from the synced file data
+          const blob = new Blob([syncedFile.content], { type: 'application/json' });
+          const file = new File([blob], syncedFile.name, { type: 'application/json' });
+          return file;
+        },
+        [Symbol.iterator]: function* () {
+          for (let i = 0; i < this.length; i++) {
+            yield this.item(i)!;
+          }
+        }
+      } as FileList;
+
+      // Parse the files and load them into the dashboard
+      const devices = await parseInventoryFiles(fileListLike);
+      onFilesLoaded(devices);
+
+      toast({
+        title: 'Files loaded successfully',
+        description: `Loaded ${devices.length} devices from synced files.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error loading synced files',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -175,6 +247,9 @@ export function SyncPanel() {
           <p className="mt-1">
             <strong>Note:</strong> Make sure Azure credentials are configured in Settings panel
             above.
+          </p>
+          <p className="mt-1">
+            <strong>Auto-load:</strong> Files will be automatically loaded into the dashboard after sync completes.
           </p>
         </div>
       </CardContent>

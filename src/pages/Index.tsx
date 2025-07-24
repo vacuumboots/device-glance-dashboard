@@ -91,7 +91,7 @@ const Index = () => {
         <SettingsPanel />
 
         {/* Sync Panel */}
-        <SyncPanel />
+        <SyncPanel onFilesLoaded={setDevices} />
 
         {/* File Upload */}
         <FileUpload onFilesLoaded={handleFilesLoaded} />

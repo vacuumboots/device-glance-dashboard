@@ -88,6 +88,55 @@ function setupIPC() {
     }
   });
 
+  ipcMain.handle('load-synced-files', async () => {
+    try {
+      const fs = await import('node:fs/promises');
+      const path = await import('node:path');
+      
+      const uniqueBaseDir = path.default.join(app.getPath('userData'), 'data', 'unique');
+      const indexFile = path.default.join(uniqueBaseDir, 'index.json');
+      
+      // Check if index file exists
+      try {
+        await fs.access(indexFile);
+      } catch {
+        return { success: false, error: 'No synced files found. Please run sync first.' };
+      }
+      
+      // Read the latest folder from index
+      const indexData = JSON.parse(await fs.readFile(indexFile, 'utf8'));
+      if (!indexData || indexData.length === 0) {
+        return { success: false, error: 'No synced data folders found.' };
+      }
+      
+      const latestFolder = indexData[0]; // First item is the latest
+      const latestFolderPath = path.default.join(uniqueBaseDir, latestFolder);
+      
+      // Read all JSON files from the latest folder
+      const files = await fs.readdir(latestFolderPath);
+      const jsonFiles = files.filter(file => path.default.extname(file) === '.json');
+      
+      if (jsonFiles.length === 0) {
+        return { success: false, error: 'No JSON files found in synced data.' };
+      }
+      
+      // Read all JSON files and return their contents
+      const fileContents = [];
+      for (const fileName of jsonFiles) {
+        const filePath = path.default.join(latestFolderPath, fileName);
+        const content = await fs.readFile(filePath, 'utf8');
+        fileContents.push({
+          name: fileName,
+          content: content
+        });
+      }
+      
+      return { success: true, files: fileContents };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   // Forward sync progress events to renderer
   syncService.on('progress', (progress) => {
     const allWindows = BrowserWindow.getAllWindows();

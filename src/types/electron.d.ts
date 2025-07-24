@@ -10,6 +10,11 @@ export interface AzureCredentials {
   accessKey: string;
 }
 
+export interface SyncedFile {
+  name: string;
+  content: string;
+}
+
 export interface ElectronAPI {
   startSync: () => Promise<{ success: boolean; error?: string }>;
   stopSync: () => Promise<{ success: boolean }>;
@@ -18,6 +23,7 @@ export interface ElectronAPI {
   removeAllListeners: (channel: string) => void;
   saveAzureCredentials: (credentials: AzureCredentials) => Promise<void>;
   getAzureCredentials: () => Promise<AzureCredentials | null>;
+  loadSyncedFiles: () => Promise<{ success: boolean; files?: SyncedFile[]; error?: string }>;
 }
 
 declare global {
