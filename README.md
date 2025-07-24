@@ -109,21 +109,17 @@ This project is built with:
 ![Advanced Search Functionality](docs/screenshots/device-search.png)
 *Search devices by computer name or serial number with real-time filtering*
 
-### Advanced Filtering
-![Filter Panel](docs/screenshots/advanced-filtering.png)
-*9 different filter types including Windows 11 readiness, TPM, and location-based filtering*
-
 ### Device Details Modal
 ![Device Details View](docs/screenshots/device-details.png)
 *Comprehensive device information with Windows 11 upgrade assessment*
 
-### Settings Panel
-![Azure Settings Configuration](docs/screenshots/settings-panel.png)
-*Secure Azure Storage credentials configuration with encrypted local storage*
-
 ### Summary Charts
 ![Analytics Dashboard](docs/screenshots/summary-charts.png)
 *Visual analytics for device fleet composition and compliance metrics*
+
+### Dark Mode Theme
+![Dark Mode Interface](docs/screenshots/darkmode.png)
+*Modern dark theme with full feature compatibility*
 
 <!-- Alternative: Host screenshots on GitHub Issues
 You can also upload images to a GitHub issue and use those URLs:

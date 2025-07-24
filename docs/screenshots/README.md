@@ -5,12 +5,13 @@
 1. **Take Screenshots**: Capture screenshots of the application showing key features
 2. **Save in this directory**: Place PNG/JPG files in `docs/screenshots/`
 3. **Use descriptive names**: Follow the naming convention already referenced in README.md:
-   - `main-dashboard.png` - Main application view
-   - `device-search.png` - Search functionality in action
+   - `main-dashboard.png` - Main application view ✅
+   - `device-search.png` - Search functionality in action ✅
+   - `device-details.png` - Device details modal open ✅
+   - `summary-charts.png` - Charts and analytics view ✅
+   - `darkmode.png` - Dark theme interface ✅
    - `advanced-filtering.png` - Filter panel expanded
-   - `device-details.png` - Device details modal open
    - `settings-panel.png` - Azure settings configuration
-   - `summary-charts.png` - Charts and analytics view
 
 ## Screenshot Recommendations
 
@@ -32,9 +33,10 @@ To add a new screenshot:
 
 ## Current Screenshot Status
 
-- [ ] main-dashboard.png
-- [ ] device-search.png  
+- [x] main-dashboard.png ✅ (128KB)
+- [x] device-search.png ✅ (121KB)  
+- [x] device-details.png ✅ (224KB)
+- [x] summary-charts.png ✅ (131KB)
+- [x] darkmode.png ✅ (189KB)
 - [ ] advanced-filtering.png
-- [ ] device-details.png
 - [ ] settings-panel.png
-- [ ] summary-charts.png
