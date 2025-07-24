@@ -23,7 +23,68 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
     if (value === null || value === undefined) return 'N/A';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (typeof value === 'number') return value.toString();
-    if (Array.isArray(value)) return value.join(', ');
+    if (Array.isArray(value)) {
+      // Handle arrays that might contain objects
+      return value
+        .map((item) => {
+          if (typeof item === 'object' && item !== null) {
+            return JSON.stringify(item, null, 2);
+          }
+          return String(item);
+        })
+        .filter((item) => item !== 'null')
+        .join(', ');
+    }
+    if (typeof value === 'object' && value !== null) {
+      // Handle complex objects
+      const obj = value as Record<string, unknown>;
+
+      // Handle CollectionDate object
+      if ('DateTime' in obj && 'value' in obj) {
+        return obj.DateTime ? String(obj.DateTime) : 'N/A';
+      }
+
+      // Handle TPMInfo object
+      if ('TPMPresent' in obj || 'TPMVersion' in obj) {
+        const tpmInfo = [];
+        if (obj.TPMPresent) tpmInfo.push('Present');
+        if (obj.TPMVersion) tpmInfo.push(`Version: ${obj.TPMVersion}`);
+        if (obj.TPMReady) tpmInfo.push('Ready');
+        if (obj.TPMEnabled) tpmInfo.push('Enabled');
+        return tpmInfo.length > 0 ? tpmInfo.join(', ') : 'TPM Info Available';
+      }
+
+      // Handle SecureBootStatus object
+      if ('SecureBootEnabled' in obj && 'SecureBootSupported' in obj) {
+        const status = [];
+        if (obj.SecureBootEnabled) status.push('Enabled');
+        if (obj.SecureBootSupported) status.push('Supported');
+        return status.length > 0 ? status.join(', ') : 'Secure Boot Info Available';
+      }
+
+      // Handle HardwareHash array
+      if (Array.isArray(obj) || (typeof obj === 'object' && 'Hardware Hash' in obj)) {
+        return 'Hardware Hash Available';
+      }
+
+      // For other objects, show key count
+      const keys = Object.keys(obj);
+      return `Object with ${keys.length} properties`;
+    }
+    if (typeof value === 'string') {
+      // Handle .NET Date format
+      if (value.includes('/Date(') && value.includes(')/')) {
+        try {
+          const timestamp = value.match(/\d+/)?.[0];
+          if (timestamp) {
+            return new Date(parseInt(timestamp)).toLocaleString();
+          }
+        } catch {
+          return value;
+        }
+      }
+      return value;
+    }
     return String(value);
   };
 
@@ -47,6 +108,14 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
     SerialNumber: 'Serial Number',
     canUpgradeToWin11: 'Windows 11 Ready',
     location: 'Location',
+    CollectionDate: 'Collection Date',
+    TPMInfo: 'TPM Information',
+    SecureBootStatus: 'Secure Boot Status',
+    FirmwareType: 'Firmware Type',
+    LastSignInDate: 'Last Sign In Date',
+    UserRunningScript: 'User Running Script',
+    WindowsBuildNumber: 'Windows Build Number',
+    category: 'Device Category',
   };
 
   const primaryKeys = [
