@@ -42,4 +42,4 @@ demo/
 
 # Location mapping file (contains sensitive location information)
 location-mapping.json
-*location-mapping*
+*location-mapping.json

@@ -125,7 +125,7 @@
       "sync_inventory.ps1",
       "!*_inventory_*.json",
       "!location-mapping.json",
-      "!*location-mapping*",
+      "!*location-mapping.json",
       "!data/",
       "!demo/"
     ],
