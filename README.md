@@ -2,6 +2,47 @@
 
 A comprehensive Windows device inventory management system built with React, TypeScript, and Electron. This application provides IT professionals with powerful tools to analyze device compliance, track Windows 11 readiness, and manage device inventories across organizations.
 
+## 🏛️ Architecture
+
+The Device Glance Dashboard operates as an Electron application, leveraging a clear separation between its user interface (Renderer Process) and backend logic (Main Process). Data synchronization occurs securely with Azure Blob Storage.
+
+```mermaid
+graph TD
+    subgraph User Interface (Renderer Process)
+        A[React UI Components] --> B(IPC Renderer)
+    end
+
+    subgraph Electron Main Process
+        B --> C[IPC Main]
+        C --> D[SyncService]
+        C --> E[CredentialsService]
+        D --> F[Azure Blob Storage]
+        E --> G[OS Credential Manager (safeStorage)]
+        F --> D
+    end
+
+    D -- "Reads/Writes" --> H[Local Data Storage (JSON files)]
+    H -- "Reads/Writes" --> D
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#ccf,stroke:#333,stroke-width:2px
+    style C fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#cfc,stroke:#333,stroke-width:2px
+    style E fill:#cfc,stroke:#333,stroke-width:2px
+    style F fill:#ffc,stroke:#333,stroke-width:2px
+    style G fill:#fcf,stroke:#333,stroke-width:2px
+    style H fill:#cff,stroke:#333,stroke-width:2px
+
+    linkStyle 0 stroke:#666,stroke-width:1.5px,fill:none,stroke-dasharray: 5 5;
+    linkStyle 1 stroke:#666,stroke-width:1.5px,fill:none,stroke-dasharray: 5 5;
+    linkStyle 2 stroke:#666,stroke-width:1.5px,fill:none;
+    linkStyle 3 stroke:#666,stroke-width:1.5px,fill:none;
+    linkStyle 4 stroke:#666,stroke-width:1.5px,fill:none;
+    linkStyle 5 stroke:#666,stroke-width:1.5px,fill:none;
+    linkStyle 6 stroke:#666,stroke-width:1.5px,fill:none;
+    linkStyle 7 stroke:#666,stroke-width:1.5px,fill:none;
+```
+
 ## 🚀 Quick Start
 
 **Option 1: Download Pre-built Installer (Recommended)**
