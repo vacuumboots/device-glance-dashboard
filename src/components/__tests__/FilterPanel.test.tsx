@@ -24,7 +24,7 @@ const mockDevices: Device[] = [
     HardwareHash: 'ABC123',
     canUpgradeToWin11: true,
     issues: [],
-    location: 'Big Rock',
+    location: 'Site 1A',
     category: 'Desktop',
   },
   {
@@ -46,7 +46,7 @@ const mockDevices: Device[] = [
     HardwareHash: '',
     canUpgradeToWin11: false,
     issues: [],
-    location: 'Red Deer Lake',
+    location: 'Site 2B',
     category: 'Laptop',
   },
 ];
@@ -171,12 +171,12 @@ describe('FilterPanel', () => {
     );
 
     // Check that community groups are displayed
-    expect(screen.getByText('Okotoks')).toBeInTheDocument();
-    expect(screen.getByText('Okotoks Area')).toBeInTheDocument();
+    expect(screen.getByText('District 1')).toBeInTheDocument();
+    expect(screen.getByText('District 1 Area')).toBeInTheDocument();
 
     // Check that individual location checkboxes are displayed
-    expect(screen.getByText('Big Rock')).toBeInTheDocument();
-    expect(screen.getByText('Red Deer Lake')).toBeInTheDocument();
+    expect(screen.getByText('Site 1A')).toBeInTheDocument();
+    expect(screen.getByText('Site 2B')).toBeInTheDocument();
   });
 
   it('should handle location checkbox changes', async () => {
@@ -191,13 +191,13 @@ describe('FilterPanel', () => {
       />
     );
 
-    // Find and click the "Big Rock" checkbox
-    const bigRockCheckbox = screen.getByLabelText('Big Rock');
+    // Find and click the "Site 1A" checkbox
+    const bigRockCheckbox = screen.getByLabelText('Site 1A');
     await user.click(bigRockCheckbox);
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
-      location: ['Big Rock'],
+      location: ['Site 1A'],
     });
   });
 
@@ -213,14 +213,14 @@ describe('FilterPanel', () => {
       />
     );
 
-    // Find and click the "Okotoks" community checkbox
-    const okotoksCheckbox = screen.getByLabelText('Okotoks');
+    // Find and click the "District 1" community checkbox
+    const okotoksCheckbox = screen.getByLabelText('District 1');
     await user.click(okotoksCheckbox);
 
-    // Should select all Okotoks locations that exist in the device data
+    // Should select all District 1 locations that exist in the device data
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
-      location: ['Big Rock'], // Only Big Rock exists in mock data under Okotoks
+      location: ['Site 1A'], // Only Site 1A exists in mock data under District 1
     });
   });
 
@@ -230,7 +230,7 @@ describe('FilterPanel', () => {
       ...defaultFilters,
       windows11Ready: 'ready',
       tpmPresent: 'present',
-      location: ['Big Rock'],
+      location: ['Site 1A'],
     };
 
     render(
@@ -241,27 +241,27 @@ describe('FilterPanel', () => {
       />
     );
 
-    // Check that Big Rock checkbox is checked
-    const bigRockCheckbox = screen.getByLabelText('Big Rock') as HTMLInputElement;
+    // Check that Site 1A checkbox is checked
+    const bigRockCheckbox = screen.getByLabelText('Site 1A') as HTMLInputElement;
     expect(bigRockCheckbox.checked).toBe(true);
   });
 
   it('should show community checkbox as indeterminate when partially selected', () => {
     const mockOnFiltersChange = vi.fn();
 
-    // Create devices that include multiple Okotoks locations
+    // Create devices that include multiple District 1 locations
     const extendedDevices: Device[] = [
       ...mockDevices,
       {
         ...mockDevices[0],
         ComputerName: 'PC-003',
-        location: 'Dr. Morris Gibson',
+        location: 'Site 1B',
       },
     ];
 
     const partialFilters: FilterState = {
       ...defaultFilters,
-      location: ['Big Rock'], // Only one of the Okotoks locations
+      location: ['Site 1A'], // Only one of the District 1 locations
     };
 
     render(
@@ -272,8 +272,8 @@ describe('FilterPanel', () => {
       />
     );
 
-    // The Okotoks community checkbox should show as indeterminate
-    const okotoksCheckbox = screen.getByLabelText('Okotoks') as HTMLInputElement;
+    // The District 1 community checkbox should show as indeterminate
+    const okotoksCheckbox = screen.getByLabelText('District 1') as HTMLInputElement;
     expect(okotoksCheckbox.indeterminate).toBe(true);
   });
 

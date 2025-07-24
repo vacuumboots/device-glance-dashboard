@@ -56,21 +56,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
   // Get unique device models from devices
   const deviceModels = Array.from(new Set(devices.map((d) => d.Model).filter(Boolean))).sort();
 
-  // Grouped locations mapping
+  // Grouped locations mapping - uses generic names for privacy
   const locationGroups = {
-    'High Country': ['C. Ian McLaren', 'Longview', 'Millarville', 'Oilfields', 'Turner Valley'],
-    'High River': ['Joe Clark', 'Senator Reily', 'Highwood', 'Spitzee'],
-    'High River Area': ['Blackie', 'Cayley'],
-    Okotoks: [
-      'Big Rock',
-      'Dr. Morris Gibson',
-      'Okotoks Junior',
-      'Percy Pegler',
-      'Foothills Composite',
-      'Meadow Ridge',
-      'Westmount',
+    'Region A': ['Location A1', 'Location A2', 'Location A3', 'Location A4', 'Location A5'],
+    'Region B': ['Location B1', 'Location B2', 'Location B3', 'Location B4'],
+    'Region C': ['Location C1', 'Location C2'],
+    'District 1': [
+      'Site 1A',
+      'Site 1B', 
+      'Site 1C',
+      'Site 1D',
+      'Site 1E',
+      'Site 1F',
+      'Site 1G',
     ],
-    'Okotoks Area': ['Heritage Heights', 'Red Deer Lake'],
+    'District 2': ['Site 2A', 'Site 2B'],
   };
 
   const handleLocationChange = (location: string, checked: boolean) => {

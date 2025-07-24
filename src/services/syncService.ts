@@ -62,7 +62,7 @@ export class SyncService extends EventEmitter {
         // Resources/app directory (alternative)
         path.join(path.dirname(process.execPath), 'resources', 'app', 'sync_inventory.ps1'),
       ];
-      
+
       let scriptPath = '';
       for (const pathToCheck of possiblePaths) {
         if (existsSync(pathToCheck)) {
@@ -70,7 +70,7 @@ export class SyncService extends EventEmitter {
           break;
         }
       }
-      
+
       // If script doesn't exist in any location, throw error
       if (!scriptPath) {
         throw new Error(`PowerShell script not found. Checked paths: ${possiblePaths.join(', ')}`);

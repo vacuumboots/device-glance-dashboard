@@ -250,28 +250,28 @@ const determineLocation = (deviceData: Device): string => {
 
   const ip = deviceData.InternalIP || '';
 
-  // Location mapping based on IP ranges
+  // Location mapping based on IP ranges - uses generic names for privacy
   const locationMappings = [
-    { name: 'Red Deer Lake', range: '10.53.' },
-    { name: 'Heritage Heights', range: '10.51.' },
-    { name: 'Big Rock', range: '10.52.' },
-    { name: 'Westmount', range: '10.54.' },
-    { name: 'Okotoks Junior', range: '10.55.' },
-    { name: 'Percy Pegler', range: '10.56.' },
-    { name: 'Dr. Morris Gibson', range: '10.57.' },
-    { name: 'Millarville', range: '10.58.' },
-    { name: 'Longview', range: '10.141.' },
-    { name: 'Foothills Composite', range: '10.140.' },
-    { name: 'Spitzee', range: '10.142.' },
-    { name: 'Highwood', range: '10.143.' },
-    { name: 'Turner Valley', range: '10.145.' },
-    { name: 'Joe Clark', range: '10.146.' },
-    { name: 'Senator Reily', range: '10.147.' },
-    { name: 'Cayley', range: '10.148.' },
-    { name: 'Blackie', range: '10.149.' },
-    { name: 'C. Ian McLaren', range: '10.150.' },
-    { name: 'Oilfields', range: '10.151.' },
-    { name: 'Meadow Ridge', range: '10.60.' },
+    { name: 'Site 2B', range: '10.53.' },
+    { name: 'Site 2A', range: '10.51.' },
+    { name: 'Site 1A', range: '10.52.' },
+    { name: 'Site 1G', range: '10.54.' },
+    { name: 'Site 1C', range: '10.55.' },
+    { name: 'Site 1D', range: '10.56.' },
+    { name: 'Site 1B', range: '10.57.' },
+    { name: 'Location A3', range: '10.58.' },
+    { name: 'Location A2', range: '10.141.' },
+    { name: 'Site 1E', range: '10.140.' },
+    { name: 'Location B4', range: '10.142.' },
+    { name: 'Location B3', range: '10.143.' },
+    { name: 'Location A5', range: '10.145.' },
+    { name: 'Location B1', range: '10.146.' },
+    { name: 'Location B2', range: '10.147.' },
+    { name: 'Location C2', range: '10.148.' },
+    { name: 'Location C1', range: '10.149.' },
+    { name: 'Location A1', range: '10.150.' },
+    { name: 'Location A4', range: '10.151.' },
+    { name: 'Site 1F', range: '10.60.' },
   ];
 
   // Check IP against location ranges
