@@ -1,6 +1,17 @@
 # Device Glance Dashboard
 
-A comprehensive Windows device inventory management system built with React, TypeScript, and Electron.
+A comprehensive Windows device inventory management system built with React, TypeScript, and Electron. This application provides IT professionals with powerful tools to analyze device compliance, track Windows 11 readiness, and manage device inventories across organizations.
+
+## 🚀 Quick Start
+
+**Option 1: Download Pre-built Installer (Recommended)**
+1. Go to the [Releases page](https://github.com/vacuumboots/device-glance-dashboard/releases)
+2. Download the latest `Device-Glance-Dashboard-Setup-*.exe` installer
+3. Run the installer and launch the application
+4. Configure your Azure Storage credentials in the Settings panel
+5. Upload device inventory JSON files or sync from Azure Storage
+
+**Option 2: Run from Source**
 
 ## How to Run This Project
 
@@ -55,15 +66,38 @@ This project is built with:
 - **Vitest** - Fast unit testing framework
 - **React Testing Library** - Component testing utilities
 
-## Features
+## ✨ Key Features
 
-- 📊 **Device Inventory Management** - Upload and analyze Windows device data
-- 🔍 **Advanced Filtering** - 8 different filter types including device model, location, compliance status
-- 📈 **Summary Charts** - Visual analytics for device fleet composition
+### Data Management
+- 📊 **Device Inventory Management** - Upload and analyze Windows device data from PowerShell scripts
+- 🔄 **Azure Storage Integration** - Secure sync with Azure Blob Storage containers
+- 🔍 **Advanced Search** - Search devices by computer name or serial number
 - 📤 **Data Export** - CSV export functionality for filtered datasets
-- 🏢 **Location-Based Analysis** - Community grouping and IP-based location detection
-- 🔒 **Security Compliance** - TPM, Secure Boot, and Windows 11 readiness tracking
-- 🖥️ **Desktop Application** - Cross-platform Electron app
+
+### Analysis & Filtering
+- 🔍 **Advanced Filtering** - 9 different filter types including:
+  - Windows 11 readiness status
+  - TPM presence and version
+  - Secure Boot compliance
+  - Storage thresholds (low storage alerts)
+  - Domain join types (Azure AD, On-Prem AD, Hybrid, Workgroup)
+  - Device categories (Desktop, Laptop, Other)
+  - Hardware hash presence
+  - Device model filtering
+  - Location-based filtering with community grouping
+- 📈 **Summary Charts** - Visual analytics for device fleet composition and compliance metrics
+- 🏢 **Location-Based Analysis** - IP-based location detection with community grouping
+
+### Security & Compliance
+- 🔒 **Security Compliance Tracking** - TPM, Secure Boot, and Windows 11 readiness analysis
+- 🛡️ **Windows 11 Assessment** - Comprehensive upgrade readiness reporting
+- 🔐 **Secure Credential Storage** - AES-256-GCM encryption for Azure credentials
+
+### User Experience
+- 🖥️ **Desktop Application** - Native Windows installer with auto-updates
+- ⚙️ **Settings Panel** - User-friendly configuration interface
+- 🎨 **Dark/Light Theme** - Modern UI with theme switching
+- 📱 **Responsive Design** - Works on desktop and web browsers
 
 ## Testing
 
@@ -81,27 +115,57 @@ npm run test:coverage # Coverage reporting
 - **Integration Tests** (8) - Data flow and filtering workflows
 - **End-to-End Tests** (5) - Complete user scenarios
 
-## Deployment
+## 🚀 Deployment & Distribution
 
-### Web Application
-Build the web version for deployment:
+### Automated Releases
+The project uses GitHub Actions for automated builds and releases:
 
+- **Automatic Builds** - Every push to main triggers a Windows build
+- **Release Creation** - Tagged releases automatically generate installer executables
+- **Artifact Upload** - Built installers are automatically uploaded to GitHub Releases
+
+### Manual Deployment
+
+#### Desktop Application (Recommended)
 ```sh
+# Build the desktop application
+npm run build-electron
+
+# Or create distributable installer
+npm run dist
+```
+
+#### Web Application
+```sh
+# Build web version for static hosting
 npm run build
 ```
 
-The built files will be in the `dist` directory and can be deployed to any static hosting service (Netlify, Vercel, GitHub Pages, etc.).
+The built files will be in the `dist` directory and can be deployed to any static hosting service.
 
-### Desktop Application
-Build the desktop application:
+### Release Process
+1. Update version in `package.json`
+2. Commit changes with descriptive message
+3. Create and push git tag: `git tag v1.x.x && git push origin v1.x.x`
+4. GitHub Actions automatically builds and uploads installer to Releases
 
-```sh
-npm run electron:build
-```
+## 📋 Recent Changes
 
-This will create platform-specific executables in the `dist` directory.
+### July 24, 2025 - Device Search & UI Improvements (v1.1.5)
 
-## Recent Changes
+- **🔍 Device Search Functionality** - Added search capability for device table
+  - Search by computer name or serial number
+  - Case-insensitive search with real-time filtering
+  - Integrated search input with existing filter system
+- **🖥️ Enhanced Device Details Modal** - Fixed display formatting issues  
+  - Proper handling of complex objects (TPMInfo, SecureBootStatus, HardwareHash)
+  - Improved .NET Date format parsing for timestamps
+  - Better formatting for CollectionDate and other object fields
+  - Resolved `[object Object]` display issues
+- **📚 Comprehensive Documentation** - Added CLAUDE.md for development guidance
+  - Complete architecture overview and development patterns
+  - Essential commands for build, test, and lint operations
+  - Key component structure and data flow documentation
 
 ### July 14, 2025 - Fix PowerShell Script Path Resolution (v1.1.4)
 
