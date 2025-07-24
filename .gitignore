@@ -39,3 +39,7 @@ demo/
 
 # Real device inventory files (contains sensitive location/device data)
 *_inventory_*.json
+
+# Location mapping file (contains sensitive location information)
+location-mapping.json
+*location-mapping*
