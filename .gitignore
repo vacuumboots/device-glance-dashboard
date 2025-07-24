@@ -36,3 +36,6 @@ data/
 
 # Demo/test data directories
 demo/
+
+# Real device inventory files (contains sensitive location/device data)
+*_inventory_*.json

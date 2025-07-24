@@ -122,7 +122,10 @@
       "dist/**/*",
       "public/electron.js",
       "public/preload.js",
-      "sync_inventory.ps1"
+      "sync_inventory.ps1",
+      "!*_inventory_*.json",
+      "!data/",
+      "!demo/"
     ],
     "extraResources": [
       {
