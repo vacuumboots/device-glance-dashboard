@@ -33,3 +33,6 @@ dist-electron
 
 # Azure data directories
 data/
+
+# Demo/test data directories
+demo/
