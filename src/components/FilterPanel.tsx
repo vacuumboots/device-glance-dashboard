@@ -8,8 +8,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Device, FilterState } from '@/types/device';
-import { Filter } from 'lucide-react';
+import { Filter, Search } from 'lucide-react';
 
 interface CommunityCheckboxProps {
   id: string;
@@ -121,6 +122,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Search Input */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search by device name or serial number..."
+              value={filters.searchTerm}
+              onChange={(e) => updateFilter('searchTerm', e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-4">
           {/* Windows 11 Ready */}
           <div className="space-y-2">

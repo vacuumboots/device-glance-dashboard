@@ -36,6 +36,7 @@ export interface FilterState {
   hashPresent: 'all' | 'present' | 'missing';
   deviceModel: string;
   location: string[];
+  searchTerm: string;
 }
 
 export interface ChartData {

@@ -27,6 +27,7 @@ const Index = () => {
     hashPresent: 'all',
     deviceModel: 'all',
     location: [],
+    searchTerm: '',
   });
 
   const { toast } = useToast();
@@ -60,6 +61,7 @@ const Index = () => {
       hashPresent: 'all',
       deviceModel: 'all',
       location: [],
+      searchTerm: '',
     });
   };
 

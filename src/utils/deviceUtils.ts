@@ -226,6 +226,17 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
       return false;
     }
 
+    // Search term filter (searches ComputerName and SerialNumber)
+    if (filters.searchTerm && filters.searchTerm.trim() !== '') {
+      const searchTerm = filters.searchTerm.toLowerCase().trim();
+      const computerName = (device.ComputerName || '').toLowerCase();
+      const serialNumber = (device.SerialNumber || '').toLowerCase();
+
+      if (!computerName.includes(searchTerm) && !serialNumber.includes(searchTerm)) {
+        return false;
+      }
+    }
+
     return true;
   });
 };
