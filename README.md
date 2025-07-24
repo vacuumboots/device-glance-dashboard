@@ -175,10 +175,40 @@ npm run build
 The built files will be in the `dist` directory and can be deployed to any static hosting service.
 
 ### Release Process
-1. Update version in `package.json`
-2. Commit changes with descriptive message
-3. Create and push git tag: `git tag v1.x.x && git push origin v1.x.x`
-4. GitHub Actions automatically builds and uploads installer to Releases
+
+#### Automated Installer Creation
+To create a new release with installer:
+
+1. **Update Version Numbers**
+   ```bash
+   # Update version in package.json (both main version and extraMetadata)
+   npm version patch  # or minor/major
+   ```
+
+2. **Commit Version Changes**
+   ```bash
+   git add package.json
+   git commit -m "Bump version to v1.x.x for release"
+   ```
+
+3. **Create and Push Release Tag**
+   ```bash
+   git tag v1.x.x
+   git push origin main
+   git push origin v1.x.x
+   ```
+
+4. **Monitor GitHub Actions**
+   - Check [Actions tab](https://github.com/vacuumboots/device-glance-dashboard/actions) for build progress
+   - Build creates Windows installer (.exe) automatically
+   - Installer uploaded to [Releases page](https://github.com/vacuumboots/device-glance-dashboard/releases)
+
+#### GitHub Actions Workflow
+The `.github/workflows/release.yml` workflow:
+- **Triggers**: Push to main branch, version tags (v*), or manual dispatch
+- **Builds**: Windows executable with electron-builder
+- **Uploads**: Installer files to GitHub Releases for version tags
+- **Duration**: ~5-10 minutes for complete build and upload
 
 ## 📋 Recent Changes
 

@@ -11,6 +11,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build-electron` - Build Electron desktop application
 - `npm run dist` - Create platform-specific executables
 
+### Release & Distribution
+- `npm version patch|minor|major` - Update version numbers automatically
+- `git tag v1.x.x` - Create version tag for release
+- `git push origin v1.x.x` - Trigger GitHub Actions installer build
+- GitHub Actions automatically creates Windows installer and uploads to Releases
+
 ### Code Quality
 - `npm run lint` - Run ESLint to check code quality
 - `npm run lint:fix` - Automatically fix ESLint issues
@@ -98,3 +104,42 @@ Test files are co-located with source files in `__tests__` directories.
 ## File Upload & Data Processing
 
 The application processes Windows device inventory JSON files. Device data includes complex nested objects for dates and various hardware/software properties. Key processing functions are in `src/utils/deviceUtils.ts` for parsing and normalizing device data.
+
+## Release Process & GitHub Actions
+
+### Automated Installer Creation
+
+The project uses GitHub Actions (`.github/workflows/release.yml`) for automated Windows installer builds:
+
+**Workflow Triggers:**
+- Push to main branch (builds only)
+- Push to version tags (`v*`) - builds and uploads installer
+- Manual workflow dispatch
+- Published GitHub releases
+
+**Release Steps:**
+1. Update version in `package.json` (both main version and `build.extraMetadata.version`)
+2. Commit version changes
+3. Create git tag: `git tag v1.x.x`
+4. Push tag: `git push origin v1.x.x`
+5. GitHub Actions automatically:
+   - Builds Windows executable with electron-builder
+   - Creates installer (.exe) and related files
+   - Uploads to GitHub Releases page
+   - Generates release notes from commits
+
+**Build Artifacts:**
+- `Device-Glance-Dashboard-Setup-*.exe` - Windows installer
+- `*.blockmap` - Update verification files
+- `*.yml` - Auto-updater configuration
+
+**Monitoring:** Check the Actions tab for build progress. Complete build and release takes ~5-10 minutes.
+
+### Manual Local Build
+
+For local development and testing:
+```bash
+npm run build && npm run build:electron-services && npm run dist
+```
+
+This creates the installer in `dist-electron/` directory without uploading to GitHub.
