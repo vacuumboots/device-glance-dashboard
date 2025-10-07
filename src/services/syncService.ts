@@ -13,17 +13,17 @@ export interface SyncProgress {
 
 // Helper function to convert a readable stream to a buffer
 async function streamToBuffer(readableStream: NodeJS.ReadableStream): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      readableStream.on('data', (data: Buffer | string) => {
-        chunks.push(Buffer.isBuffer(data) ? data : Buffer.from(data));
-      });
-      readableStream.on('end', () => {
-        resolve(Buffer.concat(chunks));
-      });
-      readableStream.on('error', reject);
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    readableStream.on('data', (data: Buffer | string) => {
+      chunks.push(Buffer.isBuffer(data) ? data : Buffer.from(data));
     });
-  }
+    readableStream.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    readableStream.on('error', reject);
+  });
+}
 
 export class SyncService extends EventEmitter {
   private isRunning = false;
@@ -46,7 +46,11 @@ export class SyncService extends EventEmitter {
 
     this.isRunning = true;
     this.abortController = new AbortController();
-    this.emit('progress', { stage: 'starting', message: 'Starting sync...', percentage: 0 } as SyncProgress);
+    this.emit('progress', {
+      stage: 'starting',
+      message: 'Starting sync...',
+      percentage: 0,
+    } as SyncProgress);
 
     try {
       const credentials = await this.credentialsService.getCredentials();
@@ -86,11 +90,11 @@ export class SyncService extends EventEmitter {
         }
         const blobClient = containerClient.getBlobClient(blobName);
         const downloadResponse = await blobClient.download(0, undefined, {
-            abortSignal: this.abortController.signal,
+          abortSignal: this.abortController.signal,
         });
 
         if (!downloadResponse.readableStreamBody) {
-            throw new Error(`Failed to download blob ${blobName}: No readable stream.`);
+          throw new Error(`Failed to download blob ${blobName}: No readable stream.`);
         }
 
         const downloadedData = await streamToBuffer(downloadResponse.readableStreamBody);
@@ -130,7 +134,7 @@ export class SyncService extends EventEmitter {
       const deviceIds = Object.keys(deviceFiles);
       for (const deviceId of deviceIds) {
         if (this.abortController.signal.aborted) {
-            throw new Error('Sync cancelled by user.');
+          throw new Error('Sync cancelled by user.');
         }
         const deviceSpecificFiles = deviceFiles[deviceId].sort().reverse();
         const latestFile = deviceSpecificFiles[0];
@@ -139,10 +143,10 @@ export class SyncService extends EventEmitter {
         await fs.copyFile(sourcePath, destPath);
         processedCount++;
         this.emit('progress', {
-            stage: 'processing',
-            message: `Processing device ${processedCount} of ${deviceIds.length}...`,
-            percentage: 60 + Math.round((processedCount / deviceIds.length) * 35),
-          } as SyncProgress);
+          stage: 'processing',
+          message: `Processing device ${processedCount} of ${deviceIds.length}...`,
+          percentage: 60 + Math.round((processedCount / deviceIds.length) * 35),
+        } as SyncProgress);
       }
 
       const uniqueBaseDir = path.join(app.getPath('userData'), 'data', 'unique');
@@ -156,18 +160,21 @@ export class SyncService extends EventEmitter {
         percentage: 100,
       } as SyncProgress);
     } catch (error) {
-        if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('Sync cancelled'))) {
-            this.emit('progress', {
-              stage: 'cancelled',
-              message: 'Sync was cancelled.',
-            } as SyncProgress);
-          } else {
-            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-            this.emit('progress', {
-              stage: 'error',
-              message: `Sync failed: ${errorMessage}`,
-            } as SyncProgress);
-          }
+      if (
+        error instanceof Error &&
+        (error.name === 'AbortError' || error.message.includes('Sync cancelled'))
+      ) {
+        this.emit('progress', {
+          stage: 'cancelled',
+          message: 'Sync was cancelled.',
+        } as SyncProgress);
+      } else {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        this.emit('progress', {
+          stage: 'error',
+          message: `Sync failed: ${errorMessage}`,
+        } as SyncProgress);
+      }
     } finally {
       this.isRunning = false;
       this.abortController = null;

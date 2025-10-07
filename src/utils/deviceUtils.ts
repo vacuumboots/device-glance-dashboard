@@ -1,4 +1,5 @@
 import { Device, FilterState } from '@/types/device';
+import { LocationMapping } from '@/types/electron';
 
 const parseMsDate = (msDateString: string): string => {
   if (!msDateString) return '';
@@ -55,7 +56,10 @@ const determineDeviceCategory = (model: string): string => {
   return deviceCategoryMap[model] || 'Other';
 };
 
-export const parseInventoryFiles = async (files: FileList): Promise<Device[]> => {
+export const parseInventoryFiles = async (
+  files: FileList,
+  locationMapping?: LocationMapping | null
+): Promise<Device[]> => {
   const devices: Device[] = [];
 
   for (let i = 0; i < files.length; i++) {
@@ -152,7 +156,7 @@ export const parseInventoryFiles = async (files: FileList): Promise<Device[]> =>
           SerialNumber: deviceData.SerialNumber || '',
           canUpgradeToWin11: isWindows11 || Boolean(deviceData.canUpgradeToWin11),
           issues: Array.isArray(deviceData.issues) ? deviceData.issues : [],
-          location: determineLocation(deviceData),
+          location: determineLocation(deviceData, locationMapping),
           CollectionDate: collectionDateString,
           category: determineDeviceCategory(deviceData.Model || ''),
           ...deviceData, // Include all original properties
@@ -241,7 +245,10 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
   });
 };
 
-const determineLocation = (deviceData: Device): string => {
+const determineLocation = (
+  deviceData: Device,
+  locationMapping?: LocationMapping | null
+): string => {
   // Try to extract location from various possible fields
   if (deviceData.location) return deviceData.location;
   if (deviceData.Location) return deviceData.Location;
@@ -249,6 +256,15 @@ const determineLocation = (deviceData: Device): string => {
   if (deviceData.Office) return deviceData.Office;
 
   const ip = deviceData.InternalIP || '';
+
+  // If external mapping is provided and has IP range mappings, use those
+  if (locationMapping?.ipRangeMapping && ip) {
+    for (const [range, realLocation] of Object.entries(locationMapping.ipRangeMapping)) {
+      if (ip.startsWith(range)) {
+        return realLocation;
+      }
+    }
+  }
 
   // Location mapping based on IP ranges - uses generic names for privacy
   const locationMappings = [
@@ -274,7 +290,7 @@ const determineLocation = (deviceData: Device): string => {
     { name: 'Site 1F', range: '10.60.' },
   ];
 
-  // Check IP against location ranges
+  // Check IP against location ranges (fallback to generic names)
   if (ip) {
     for (const location of locationMappings) {
       if (ip.startsWith(location.range)) {

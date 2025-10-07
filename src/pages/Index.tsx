@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { SummaryCharts } from '@/components/SummaryCharts';
 import { FilterPanel } from '@/components/FilterPanel';
@@ -13,10 +13,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SyncPanel } from '@/components/SyncPanel';
 import { SettingsPanel } from '@/components/SettingsPanel';
+import { LocationMapping } from '@/types/electron';
 
 const Index = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [locationMapping, setLocationMapping] = useState<LocationMapping | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     windows11Ready: 'all',
     tpmPresent: 'all',
@@ -32,12 +34,29 @@ const Index = () => {
 
   const { toast } = useToast();
 
+  // Load location mapping on mount (only in Electron environment)
+  useEffect(() => {
+    if (window.electronAPI?.loadLocationMapping) {
+      window.electronAPI
+        .loadLocationMapping()
+        .then((result) => {
+          if (result.success && result.mapping) {
+            setLocationMapping(result.mapping);
+            console.log('Location mapping loaded successfully');
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to load location mapping:', error);
+        });
+    }
+  }, []);
+
   const filteredDevices = useMemo(() => {
     return filterDevices(devices, filters);
   }, [devices, filters]);
 
   const handleFilesLoaded = (files: FileList) => {
-    parseInventoryFiles(files)
+    parseInventoryFiles(files, locationMapping)
       .then(setDevices)
       .catch((error) => {
         toast({
@@ -91,7 +110,7 @@ const Index = () => {
         <SettingsPanel />
 
         {/* Sync Panel */}
-        <SyncPanel onFilesLoaded={setDevices} />
+        <SyncPanel onFilesLoaded={setDevices} locationMapping={locationMapping} />
 
         {/* File Upload */}
         <FileUpload onFilesLoaded={handleFilesLoaded} />

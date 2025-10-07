@@ -46,7 +46,7 @@ describe('deviceUtils', () => {
         Manufacturer: 'Dell Inc.',
         Model: 'OptiPlex 7070',
         category: 'Desktop',
-        location: 'Big Rock', // Should be determined from IP 10.52.x.x
+        location: 'Site 1A', // Should be determined from IP 10.52.x.x (generic name without mapping)
       });
     });
 
@@ -156,7 +156,7 @@ describe('deviceUtils', () => {
           HardwareHash: 'ABC123',
           canUpgradeToWin11: true,
           issues: [],
-          location: 'Big Rock',
+          location: 'Site 1A',
           category: 'Desktop',
         },
         {
@@ -293,7 +293,7 @@ describe('deviceUtils', () => {
     });
 
     it('should filter by location', () => {
-      const filters = { ...baseFilters, location: ['Big Rock'] };
+      const filters = { ...baseFilters, location: ['Site 1A'] };
       const result = filterDevices(mockDevices, filters);
       expect(result).toHaveLength(1);
       expect(result[0].ComputerName).toBe('PC-001');

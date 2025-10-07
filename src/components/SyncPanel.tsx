@@ -4,16 +4,17 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { SyncProgress, SyncedFile } from '@/types/electron';
+import { SyncProgress, LocationMapping } from '@/types/electron';
 import { parseInventoryFiles } from '@/utils/deviceUtils';
 import { Device } from '@/types/device';
 import { useToast } from '@/components/ui/use-toast';
 
 interface SyncPanelProps {
   onFilesLoaded?: (devices: Device[]) => void;
+  locationMapping?: LocationMapping | null;
 }
 
-export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
+export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
 
     checkStatus();
 
-    const handleProgress = (event: unknown, progressData: SyncProgress) => {
+    const handleProgress = (_event: unknown, progressData: SyncProgress) => {
       setProgress(progressData);
       setIsRunning(
         progressData.stage !== 'complete' &&
@@ -60,6 +61,7 @@ export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
     return () => {
       window.electronAPI.removeAllListeners('sync-progress');
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleStartSync = async () => {
@@ -92,7 +94,7 @@ export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
 
     try {
       const result = await window.electronAPI.loadSyncedFiles();
-      
+
       if (!result.success) {
         toast({
           title: 'Failed to load synced files',
@@ -117,7 +119,7 @@ export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
         item: (index: number) => {
           const syncedFile = result.files![index];
           if (!syncedFile) return null;
-          
+
           // Create a File-like object from the synced file data
           const blob = new Blob([syncedFile.content], { type: 'application/json' });
           const file = new File([blob], syncedFile.name, { type: 'application/json' });
@@ -127,11 +129,11 @@ export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
           for (let i = 0; i < this.length; i++) {
             yield this.item(i)!;
           }
-        }
+        },
       } as FileList;
 
       // Parse the files and load them into the dashboard
-      const devices = await parseInventoryFiles(fileListLike);
+      const devices = await parseInventoryFiles(fileListLike, locationMapping);
       onFilesLoaded(devices);
 
       toast({
@@ -249,7 +251,8 @@ export function SyncPanel({ onFilesLoaded }: SyncPanelProps) {
             above.
           </p>
           <p className="mt-1">
-            <strong>Auto-load:</strong> Files will be automatically loaded into the dashboard after sync completes.
+            <strong>Auto-load:</strong> Files will be automatically loaded into the dashboard after
+            sync completes.
           </p>
         </div>
       </CardContent>
