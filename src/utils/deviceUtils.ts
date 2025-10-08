@@ -250,10 +250,20 @@ const determineLocation = (
   locationMapping?: LocationMapping | null
 ): string => {
   // Try to extract location from various possible fields
-  if (deviceData.location) return deviceData.location;
-  if (deviceData.Location) return deviceData.Location;
-  if (deviceData.Site) return deviceData.Site;
-  if (deviceData.Office) return deviceData.Office;
+  const location = deviceData.location || deviceData.Location || deviceData.Site || deviceData.Office;
+
+  // If we found a location in the device data, check if we should translate it using genericToReal
+  if (location && locationMapping?.genericToReal) {
+    const realLocation = locationMapping.genericToReal[location];
+    if (realLocation) {
+      return realLocation;
+    }
+    // If no mapping found, return the original location
+    return location;
+  }
+
+  // If we already have a location from device data (and no mapping), return it
+  if (location) return location;
 
   const ip = deviceData.InternalIP || '';
 
