@@ -126,12 +126,7 @@ const Index = () => {
             </div>
 
             {/* Filter Panel */}
-            <FilterPanel
-              devices={devices}
-              filters={filters}
-              onFiltersChange={setFilters}
-              locationMapping={locationMapping}
-            />
+            <FilterPanel devices={devices} filters={filters} onFiltersChange={setFilters} />
 
             {/* Export Buttons */}
             <ExportButtons devices={filteredDevices} />

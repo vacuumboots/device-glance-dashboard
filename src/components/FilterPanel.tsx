@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -12,46 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Device, FilterState } from '@/types/device';
 import { Filter, Search } from 'lucide-react';
 
-interface CommunityCheckboxProps {
-  id: string;
-  checked: boolean;
-  indeterminate: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}
-
-const CommunityCheckbox: React.FC<CommunityCheckboxProps> = ({
-  id,
-  checked,
-  indeterminate,
-  onCheckedChange,
-}) => {
-  const checkboxRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (checkboxRef.current) {
-      const input = checkboxRef.current.querySelector('input[type="checkbox"]') as HTMLInputElement;
-      if (input) {
-        input.indeterminate = indeterminate;
-      }
-    }
-  }, [indeterminate]);
-
-  return <Checkbox ref={checkboxRef} id={id} checked={checked} onCheckedChange={onCheckedChange} />;
-};
-
 interface FilterPanelProps {
   devices: Device[];
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
-  locationMapping?: { genericToReal: Record<string, string> } | null;
 }
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({
-  devices,
-  filters,
-  onFiltersChange,
-  locationMapping,
-}) => {
+export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFiltersChange }) => {
   const updateFilter = (key: keyof FilterState, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
   };
@@ -62,63 +29,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   // Get unique device models from devices
   const deviceModels = Array.from(new Set(devices.map((d) => d.Model).filter(Boolean))).sort();
 
-  // Grouped locations mapping - translate generic to real if mapping exists
-  const genericLocationGroups = {
-    'Region A': ['Location A1', 'Location A2', 'Location A3', 'Location A4', 'Location A5'],
-    'Region B': ['Location B1', 'Location B2', 'Location B3', 'Location B4'],
-    'Region C': ['Location C1', 'Location C2'],
-    'District 1': ['Site 1A', 'Site 1B', 'Site 1C', 'Site 1D', 'Site 1E', 'Site 1F', 'Site 1G'],
-    'District 2': ['Site 2A', 'Site 2B'],
-  };
-
-  // Transform location groups using the mapping if available
-  const locationGroups: Record<string, string[]> = {};
-  Object.entries(genericLocationGroups).forEach(([genericCommunity, genericLocations]) => {
-    // Translate community name
-    const realCommunity = locationMapping?.genericToReal[genericCommunity] || genericCommunity;
-    // Translate location names
-    const realLocations = genericLocations.map((loc) => locationMapping?.genericToReal[loc] || loc);
-    locationGroups[realCommunity] = realLocations;
-  });
-
   const handleLocationChange = (location: string, checked: boolean) => {
     const newLocations = checked
       ? [...filters.location, location]
       : filters.location.filter((l) => l !== location);
     onFiltersChange({ ...filters, location: newLocations });
-  };
-
-  const handleCommunityChange = (community: string, checked: boolean) => {
-    const communityLocations = locationGroups[community as keyof typeof locationGroups] || [];
-    const availableCommunityLocations = communityLocations.filter((loc) => locations.includes(loc));
-
-    let newLocations;
-    if (checked) {
-      // Add all community locations that aren't already selected
-      newLocations = [...new Set([...filters.location, ...availableCommunityLocations])];
-    } else {
-      // Remove all community locations
-      newLocations = filters.location.filter((l) => !availableCommunityLocations.includes(l));
-    }
-    onFiltersChange({ ...filters, location: newLocations });
-  };
-
-  const isCommunitySelected = (community: string) => {
-    const communityLocations = locationGroups[community as keyof typeof locationGroups] || [];
-    const availableCommunityLocations = communityLocations.filter((loc) => locations.includes(loc));
-    return (
-      availableCommunityLocations.length > 0 &&
-      availableCommunityLocations.every((loc) => filters.location.includes(loc))
-    );
-  };
-
-  const isCommunityPartiallySelected = (community: string) => {
-    const communityLocations = locationGroups[community as keyof typeof locationGroups] || [];
-    const availableCommunityLocations = communityLocations.filter((loc) => locations.includes(loc));
-    const selectedCount = availableCommunityLocations.filter((loc) =>
-      filters.location.includes(loc)
-    ).length;
-    return selectedCount > 0 && selectedCount < availableCommunityLocations.length;
   };
 
   return (
@@ -297,45 +212,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Location */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Locations</label>
-            <div className="space-y-3 max-h-48 overflow-y-auto border rounded-md p-3">
-              {Object.entries(locationGroups).map(([groupName, groupLocations]) => (
-                <div key={groupName} className="space-y-2">
-                  {/* Community Group Checkbox */}
-                  <div className="flex items-center space-x-2 border-b border-muted pb-1">
-                    <CommunityCheckbox
-                      id={`community-${groupName}`}
-                      checked={isCommunitySelected(groupName)}
-                      indeterminate={isCommunityPartiallySelected(groupName)}
-                      onCheckedChange={(checked) => handleCommunityChange(groupName, !!checked)}
-                    />
-                    <label
-                      htmlFor={`community-${groupName}`}
-                      className="text-sm font-semibold cursor-pointer text-foreground"
-                    >
-                      {groupName}
-                    </label>
-                  </div>
-
-                  {/* Individual Location Checkboxes */}
-                  <div className="space-y-1 pl-6">
-                    {groupLocations
-                      .filter((loc) => locations.includes(loc))
-                      .map((location) => (
-                        <div key={location} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`location-${location}`}
-                            checked={filters.location.includes(location)}
-                            onCheckedChange={(checked) => handleLocationChange(location, !!checked)}
-                          />
-                          <label
-                            htmlFor={`location-${location}`}
-                            className="text-sm cursor-pointer"
-                          >
-                            {location}
-                          </label>
-                        </div>
-                      ))}
-                  </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
+              {locations.map((location) => (
+                <div key={location} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`location-${location}`}
+                    checked={filters.location.includes(location)}
+                    onCheckedChange={(checked) => handleLocationChange(location, !!checked)}
+                  />
+                  <label htmlFor={`location-${location}`} className="text-sm cursor-pointer">
+                    {location}
+                  </label>
                 </div>
               ))}
             </div>
