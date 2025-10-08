@@ -43,9 +43,15 @@ interface FilterPanelProps {
   devices: Device[];
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
+  locationMapping?: { genericToReal: Record<string, string> } | null;
 }
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFiltersChange }) => {
+export const FilterPanel: React.FC<FilterPanelProps> = ({
+  devices,
+  filters,
+  onFiltersChange,
+  locationMapping,
+}) => {
   const updateFilter = (key: keyof FilterState, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
   };
@@ -56,14 +62,24 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
   // Get unique device models from devices
   const deviceModels = Array.from(new Set(devices.map((d) => d.Model).filter(Boolean))).sort();
 
-  // Grouped locations mapping - uses generic names for privacy
-  const locationGroups = {
+  // Grouped locations mapping - translate generic to real if mapping exists
+  const genericLocationGroups = {
     'Region A': ['Location A1', 'Location A2', 'Location A3', 'Location A4', 'Location A5'],
     'Region B': ['Location B1', 'Location B2', 'Location B3', 'Location B4'],
     'Region C': ['Location C1', 'Location C2'],
     'District 1': ['Site 1A', 'Site 1B', 'Site 1C', 'Site 1D', 'Site 1E', 'Site 1F', 'Site 1G'],
     'District 2': ['Site 2A', 'Site 2B'],
   };
+
+  // Transform location groups using the mapping if available
+  const locationGroups: Record<string, string[]> = {};
+  Object.entries(genericLocationGroups).forEach(([genericCommunity, genericLocations]) => {
+    // Translate community name
+    const realCommunity = locationMapping?.genericToReal[genericCommunity] || genericCommunity;
+    // Translate location names
+    const realLocations = genericLocations.map((loc) => locationMapping?.genericToReal[loc] || loc);
+    locationGroups[realCommunity] = realLocations;
+  });
 
   const handleLocationChange = (location: string, checked: boolean) => {
     const newLocations = checked

@@ -181,6 +181,18 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                 >
                   Join Type <SortIcon column="JoinType" />
                 </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('InternalIP')}
+                >
+                  IP Address <SortIcon column="InternalIP" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('location')}
+                >
+                  Location <SortIcon column="location" />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -225,6 +237,8 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   <TableCell>
                     <Badge variant="outline">{device.JoinType}</Badge>
                   </TableCell>
+                  <TableCell>{device.InternalIP || '-'}</TableCell>
+                  <TableCell>{device.location || '-'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

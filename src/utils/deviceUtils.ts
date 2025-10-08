@@ -250,7 +250,8 @@ const determineLocation = (
   locationMapping?: LocationMapping | null
 ): string => {
   // Try to extract location from various possible fields
-  const location = deviceData.location || deviceData.Location || deviceData.Site || deviceData.Office;
+  const location =
+    deviceData.location || deviceData.Location || deviceData.Site || deviceData.Office;
 
   // If we found a location in the device data, check if we should translate it using genericToReal
   if (location && locationMapping?.genericToReal) {
