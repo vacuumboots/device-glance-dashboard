@@ -6,7 +6,8 @@ import { DeviceTable } from '@/components/DeviceTable';
 import { DeviceDetailsModal } from '@/components/DeviceDetailsModal';
 import { ExportButtons } from '@/components/ExportButtons';
 import { Device, FilterState } from '@/types/device';
-import { parseInventoryFiles, filterDevices } from '@/utils/deviceUtils';
+import { parseInventoryFiles } from '@/utils/deviceUtils';
+import { useFilteredDevices } from '@/hooks/useFilteredDevices';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -51,9 +52,7 @@ const Index = () => {
     }
   }, []);
 
-  const filteredDevices = useMemo(() => {
-    return filterDevices(devices, filters);
-  }, [devices, filters]);
+  const filteredDevices = useFilteredDevices(devices, filters);
 
   const handleFilesLoaded = (files: FileList) => {
     parseInventoryFiles(files, locationMapping)
