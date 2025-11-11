@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { SummaryCharts } from '@/components/SummaryCharts';
 import { FilterPanel } from '@/components/FilterPanel';
@@ -6,7 +6,7 @@ import { DeviceTable } from '@/components/DeviceTable';
 import { DeviceDetailsModal } from '@/components/DeviceDetailsModal';
 import { ExportButtons } from '@/components/ExportButtons';
 import { Device, FilterState } from '@/types/device';
-import { parseInventoryFiles } from '@/utils/deviceUtils';
+import { parseInventoryFiles, ParseProgress } from '@/utils/deviceUtils';
 import { useFilteredDevices } from '@/hooks/useFilteredDevices';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
@@ -15,11 +15,12 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { SyncPanel } from '@/components/SyncPanel';
 import { SettingsPanel } from '@/components/SettingsPanel';
 import { LocationMapping } from '@/types/electron';
+import { useLocationMapping } from '@/hooks/useElectronQueries';
 
 const Index = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [locationMapping, setLocationMapping] = useState<LocationMapping | null>(null);
+  const { data: locationMapping } = useLocationMapping();
   const [filters, setFilters] = useState<FilterState>({
     windows11Ready: 'all',
     tpmPresent: 'all',
@@ -34,35 +35,45 @@ const Index = () => {
   });
 
   const { toast } = useToast();
+  const [parseProgress, setParseProgress] = useState<ParseProgress | null>(null);
+  const [parseAbort, setParseAbort] = useState<AbortController | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
 
-  // Load location mapping on mount (only in Electron environment)
-  useEffect(() => {
-    if (window.electronAPI?.loadLocationMapping) {
-      window.electronAPI
-        .loadLocationMapping()
-        .then((result) => {
-          if (result.success && result.mapping) {
-            setLocationMapping(result.mapping);
-            console.log('Location mapping loaded successfully');
-          }
-        })
-        .catch((error) => {
-          console.error('Failed to load location mapping:', error);
-        });
-    }
-  }, []);
+  // locationMapping is managed by React Query; no manual effect required
 
   const filteredDevices = useFilteredDevices(devices, filters);
 
-  const handleFilesLoaded = (files: FileList) => {
-    parseInventoryFiles(files, locationMapping)
-      .then(setDevices)
+  const handleFilesLoaded = (files: FileList, opts?: { signal?: AbortSignal; onProgress?: (p: ParseProgress) => void }) => {
+    // If FileUpload passed its own signal/progress, prefer them.
+    const controller = opts?.signal ? null : new AbortController();
+    const signal = opts?.signal ?? controller?.signal;
+    if (!opts?.signal) {
+      setParseAbort(controller);
+    }
+    setIsParsing(true);
+    setParseProgress({ current: 0, total: files.length });
+
+    parseInventoryFiles(files, locationMapping, {
+      signal: signal ?? undefined,
+      onProgress: (p) => {
+        setParseProgress(p);
+        opts?.onProgress?.(p);
+      },
+    })
+      .then((list) => {
+        setDevices(list);
+      })
       .catch((error) => {
+        if (String(error?.message || error).toLowerCase().includes('cancel')) return;
         toast({
           title: 'Error loading inventory files',
           description: 'Please check the file format. ' + error.message,
           variant: 'destructive',
         });
+      })
+      .finally(() => {
+        setIsParsing(false);
+        setParseAbort(null);
       });
   };
 
@@ -113,6 +124,15 @@ const Index = () => {
 
         {/* File Upload */}
         <FileUpload onFilesLoaded={handleFilesLoaded} />
+
+        {isParsing && parseProgress && (
+          <div className="bg-card p-4 rounded-lg border">
+            <p className="text-sm text-muted-foreground">
+              Parsing files ({parseProgress.current}/{parseProgress.total}
+              {parseProgress.fileName ? `: ${parseProgress.fileName}` : ''})
+            </p>
+          </div>
+        )}
 
         {devices.length > 0 && (
           <>
