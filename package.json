@@ -23,7 +23,9 @@
     "electron": "npm run build:electron-services && electron .",
     "electron-dev": "concurrently \"npm run dev\" \"npm run build:electron-services && wait-on http://localhost:5173 && electron .\"",
     "build-electron": "npm run build && npm run build:electron-services && electron-builder",
-    "dist": "npm run build && npm run build:electron-services && electron-builder --win --x64 --publish=never"
+    "dist": "npm run build && npm run build:electron-services && electron-builder --win --x64 --publish=never",
+    "dist:mac": "npm run build && npm run build:electron-services && electron-builder --mac --x64 --publish=never",
+    "dist:linux": "npm run build && npm run build:electron-services && electron-builder --linux --x64 --publish=never"
   },
   "dependencies": {
     "@azure/abort-controller": "^2.1.2",
@@ -137,10 +139,21 @@
         "to": "sync_inventory.ps1"
       }
     ],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.utilities",
+      "artifactName": "${productName}-${version}-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-linux-${arch}.${ext}"
+    },
     "win": {
       "target": "nsis",
       "requestedExecutionLevel": "asInvoker",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "artifactName": "${productName}-${version}-win-${arch}-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
