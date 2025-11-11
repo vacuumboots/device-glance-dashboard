@@ -2,16 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import type { LocationMapping } from '@/types/electron';
 
 function hasElectron() {
-  return typeof window !== 'undefined' && !!(window as any).electronAPI;
+  return typeof window !== 'undefined' && 'electronAPI' in window;
 }
 
 export function useLocationMapping() {
-  const enabled = hasElectron() && !!window.electronAPI.loadLocationMapping;
-  if (!enabled) {
-    return { data: null, isLoading: false, isError: false } as const;
-  }
-  return useQuery<{ success: boolean; mapping?: LocationMapping | null }, Error, LocationMapping | null>({
+  return useQuery<
+    { success: boolean; mapping?: LocationMapping | null },
+    Error,
+    LocationMapping | null
+  >({
     queryKey: ['locationMapping'],
+    enabled: hasElectron() && !!window.electronAPI.loadLocationMapping,
     queryFn: async () => {
       const res = await window.electronAPI.loadLocationMapping();
       return res;
@@ -25,12 +26,9 @@ export function useLocationMapping() {
 type SyncStatus = { isRunning: boolean };
 
 export function useSyncStatus(pollMs = 2000) {
-  const enabled = hasElectron() && !!window.electronAPI.getSyncStatus;
-  if (!enabled) {
-    return { data: undefined, isLoading: false, isError: false } as const;
-  }
   return useQuery<SyncStatus>({
     queryKey: ['syncStatus'],
+    enabled: hasElectron() && !!window.electronAPI.getSyncStatus,
     queryFn: () => window.electronAPI.getSyncStatus(),
     refetchInterval: pollMs,
   });
