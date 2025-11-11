@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { config } from 'dotenv';
 import { SyncService } from '../dist/electron-services/services/syncService.js';
 import { CredentialsService } from '../dist/electron-services/services/credentialsService.js';
+import mainLogger from './main-logger.js';
 
 // Load environment variables from .env file
 config();
@@ -36,8 +37,8 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
   } else {
     const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
-    console.log('App path:', app.getAppPath());
-    console.log('Loading file:', indexPath);
+    mainLogger.info('App path:', app.getAppPath());
+    mainLogger.info('Loading file:', indexPath);
     mainWindow.loadFile(indexPath);
   }
 
@@ -57,6 +58,7 @@ function setupIPC() {
       await syncService.startSync();
       return { success: true };
     } catch (error) {
+      mainLogger.error('sync-start failed', error && error.message ? error.message : error);
       return { success: false, error: error.message };
     }
   });
@@ -75,6 +77,7 @@ function setupIPC() {
       await credentialsService.saveCredentials(credentials);
       return { success: true };
     } catch (error) {
+      mainLogger.error('save-azure-credentials failed', error && error.message ? error.message : error);
       return { success: false, error: error.message };
     }
   });
@@ -84,6 +87,7 @@ function setupIPC() {
       const credentials = await credentialsService.getCredentials();
       return credentials;
     } catch (error) {
+      mainLogger.error('get-azure-credentials failed', error && error.message ? error.message : error);
       return null;
     }
   });
@@ -133,6 +137,7 @@ function setupIPC() {
 
       return { success: true, files: fileContents };
     } catch (error) {
+      mainLogger.error('load-synced-files failed', error && error.message ? error.message : error);
       return { success: false, error: error.message };
     }
   });
@@ -151,9 +156,11 @@ function setupIPC() {
         return { success: true, mapping: data.locationMapping };
       } catch (error) {
         // File doesn't exist in user data directory, return null (will use generic names)
+        mainLogger.warn('location-mapping not found in user data; using generic names');
         return { success: true, mapping: null };
       }
     } catch (error) {
+      mainLogger.error('load-location-mapping failed', error && error.message ? error.message : error);
       return { success: false, error: error.message };
     }
   });
@@ -169,6 +176,7 @@ function setupIPC() {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
+  mainLogger.info('App starting', { version: app.getVersion(), node: process.versions.node, chrome: process.versions.chrome, electron: process.versions.electron });
   setupIPC();
   createWindow();
 
@@ -182,6 +190,7 @@ app.whenReady().then(() => {
 // Quit when all windows are closed
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    mainLogger.info('All windows closed; quitting');
     app.quit();
   }
 });
