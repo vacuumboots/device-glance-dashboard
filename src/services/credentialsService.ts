@@ -1,4 +1,5 @@
 import { app, safeStorage } from 'electron';
+import logger from '@/core/logging/logger';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -31,7 +32,7 @@ export class CredentialsService {
       // Log other errors for debugging.
       const err = error as NodeJS.ErrnoException;
       if (err && err.code && err.code !== 'ENOENT') {
-        console.error('Failed to read or decrypt credentials:', err);
+        logger.error('Failed to read or decrypt credentials', { err });
       }
       return null;
     }

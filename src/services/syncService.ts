@@ -3,6 +3,7 @@ import { app } from 'electron';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
+import logger from '@/core/logging/logger';
 import { CredentialsService } from './credentialsService.js';
 
 export interface SyncProgress {
@@ -170,6 +171,7 @@ export class SyncService extends EventEmitter {
         } as SyncProgress);
       } else {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        logger.error('Sync failed', { error: errorMessage });
         this.emit('progress', {
           stage: 'error',
           message: `Sync failed: ${errorMessage}`,
@@ -184,7 +186,7 @@ export class SyncService extends EventEmitter {
   stopSync(): void {
     if (this.isRunning && this.abortController) {
       this.abortController.abort();
-      console.log('Sync cancellation requested.');
+      logger.info('Sync cancellation requested');
     }
   }
 
