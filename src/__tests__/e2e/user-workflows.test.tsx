@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Index from '../../pages/Index';
 import { Device } from '../../types/device';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock the toast hook
 vi.mock('../../components/ui/use-toast', () => ({
@@ -12,6 +13,12 @@ vi.mock('../../components/ui/use-toast', () => ({
 }));
 
 describe('End-to-End User Workflows', () => {
+  const renderWithProvider = (ui: React.ReactNode) => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  };
   const createMockInventoryFile = (devices: Device[]) => {
     const jsonContent = JSON.stringify(devices);
     const buffer = new TextEncoder().encode(jsonContent);
@@ -139,7 +146,7 @@ describe('End-to-End User Workflows', () => {
     it('should complete a full IT audit: upload, analyze, filter, and export', async () => {
       const user = userEvent.setup();
 
-      render(<Index />);
+  renderWithProvider(<Index />);
 
       // Step 1: Upload inventory file
       const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -212,7 +219,7 @@ describe('End-to-End User Workflows', () => {
     it('should identify security compliance issues across the fleet', async () => {
       const user = userEvent.setup();
 
-      render(<Index />);
+  renderWithProvider(<Index />);
 
       // Upload inventory
       const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -267,7 +274,7 @@ describe('End-to-End User Workflows', () => {
     it('should filter and analyze devices by location', async () => {
       const user = userEvent.setup();
 
-      render(<Index />);
+  renderWithProvider(<Index />);
 
       // Upload inventory
       const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -315,7 +322,7 @@ describe('End-to-End User Workflows', () => {
     it('should analyze fleet composition by device model', async () => {
       const user = userEvent.setup();
 
-      render(<Index />);
+  renderWithProvider(<Index />);
 
       // Upload inventory
       const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -360,7 +367,7 @@ describe('End-to-End User Workflows', () => {
     it('should view detailed device information', async () => {
       const user = userEvent.setup();
 
-      render(<Index />);
+  renderWithProvider(<Index />);
 
       // Upload inventory
       const fileInput = screen.getByRole('button', { name: /browse files/i })

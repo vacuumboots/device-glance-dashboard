@@ -29,7 +29,7 @@ describe('SyncPanel', () => {
       writable: true,
     });
 
-  render(<SyncPanel />);
+  renderWithProvider(<SyncPanel />);
 
     expect(screen.getByText('Azure Sync')).toBeInTheDocument();
     expect(screen.getByText(/Azure Sync is only available in the desktop app/)).toBeInTheDocument();

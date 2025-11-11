@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { LocationMapping } from '@/types/electron';
 
 function hasElectron() {
-  return typeof window !== 'undefined' && 'electronAPI' in window;
+  return typeof window !== 'undefined' && Boolean((window as Window & { electronAPI?: unknown }).electronAPI);
 }
 
 export function useLocationMapping() {
