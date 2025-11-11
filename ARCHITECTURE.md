@@ -30,29 +30,34 @@ Device Glance Dashboard is a hybrid Electron + React + TypeScript application fo
 
 ## Recent hardening (2025-11)
 
-- Validation and normalization: Integrated Zod `DeviceSchema` into the parsing path to coerce types, set defaults, and guard against malformed input.
-- Parser resilience: Added BOM-/heuristic-based encoding detection with safe decoding for UTF-8/UTF-16LE/BE and robust .NET `/Date(…)/` parsing.
-- Config externalization: Device model→category and generic IP range→location mappings moved to JSON and imported via `resolveJsonModule`.
-- UI and a11y/test stability: Stable `data-testid`s and accessible labels; visible summary counts exposed for tests.
-- Multi-OS distribution: Tag-driven CI releases with standardized artifact naming for macOS/Windows/Linux.
-- Tests: Integration and E2E tests updated; full suite passes locally and in CI.
+Implemented foundational stability & observability:
 
-## Weaknesses / Technical Debt
+1. Validation & normalization: Zod `DeviceSchema` integrated in parsing path (type coercion, defaults, malformed guard).
+2. Parser resilience: BOM/heuristic encoding detection (UTF-8/UTF-16LE/BE) + robust .NET `/Date(…)/` parsing.
+3. Config externalization: Category + generic IP range/location mappings moved to JSON (imported via `resolveJsonModule`).
+4. UI & test stability: Stable `data-testid`s, accessible labels, visible summary counts for deterministic assertions.
+5. Logging (renderer): Structured logger (`src/core/logging/logger.ts`) with level filtering.
+6. Error handling: Global `ErrorBoundary` wrapping `App` for graceful renderer failures.
+7. Logging (main process): File-based daily logs with 5MB rotation + IPC `openLogsFolder` + Settings panel button.
+8. Multi-OS distribution: Tag-driven CI release pipeline concept defined (macOS/Windows/Linux artifacts).
+9. Tests: Unit + integration + E2E suites passing (92 tests) — baseline coverage for parsing & filtering.
 
-1. Directory Structure: Mixed horizontal (components/, utils/, services/) rather than feature‑oriented; grows harder to navigate as features expand.
-1. State Management: Heavy reliance on local `useState` and `useMemo`; React Query initialized but unused → missed caching/opportunistic refetch potential.
-1. Performance: Full array filtering on every render without memoization; large file parsing done serially with full in-memory materialization (no streaming/Workers); table uses manual pagination/sort and lacks virtualization.
-1. Coupling / IPC: Renderer constructs a synthetic `FileList` from synced files; should be abstracted behind a domain ingestion service.
-1. Error Handling: Inconsistent try/catch; no unified error boundary or structured error types (e.g., `DomainError`, `SyncError`).
-1. Validation / Data Integrity: Partially addressed via Zod; ensure all ingestion paths (including IPC sync) pass through schemas and unify defaults.
-1. Testing Gaps: Limited unit tests for core domain functions; no tests for IPC flows/main-process services or upgrade recommendation logic.
-1. Observability / Logging: Ad hoc `console.log`; no structured logger, log levels, or performance metrics.
-1. Configuration: Partially addressed via JSON externalization; add a UI/editor and a versioning strategy for configs.
-1. Accessibility (a11y): Table interactions and status badges need clearer semantics (roles, aria-*). Color-only indicators persist.
-1. Security: No integrity check on downloaded blobs; risk if malicious JSON adds unexpected keys that surface in UI.
-1. Release / CI: CI exists for tests/builds and release packaging; extend with signing/notarization and automated release notes.
-1. Documentation: Architecture doc present; add contribution guide and ADRs.
-1. Scalability: Single-thread parsing; no worker for CPU-intensive tasks (e.g., thousands of large inventory files).
+## Weaknesses / Technical Debt (Updated)
+
+1. Directory Structure: Still horizontal (components/, utils/, services/); feature-oriented refactor pending (Phase 3).
+2. State Management: Reliance on local state; React Query unused → missed caching & refetch semantics.
+3. Performance: Filtering not memoized; parsing synchronous on UI thread; table lacks virtualization.
+4. Coupling / IPC: Synthetic `FileList` construction for synced files — needs ingestion abstraction service.
+5. Error Handling: Global boundary added, but no structured error taxonomy (`DomainError`, `SyncError`) yet.
+6. Validation Coverage: IPC sync path not yet unified through schema validation service.
+7. Testing Gaps: Limited IPC/main-process logger & sync service tests; upgrade recommendation logic lightly covered.
+8. Observability Metrics: Structured logging in place, but no performance metric collection or tracing.
+9. Configuration Management: External JSON present — lacks UI editor, versioning, validation lifecycle.
+10. Accessibility: Color indicators still rely on visual cues; further ARIA improvements & keyboard workflows needed.
+11. Security: No integrity/signature verification of remote blobs; potential injection of unexpected fields.
+12. Release / CI: Signing/notarization & automated release notes not implemented.
+13. Documentation Depth: Missing contribution guide & ADR process formalization.
+14. Scalability: No Web Worker / streaming parsing for very large datasets.
 
 ## Proposed Target Architecture (To‑Be)
 
@@ -88,15 +93,18 @@ Key principles:
 - Unified Error & Logging abstractions.
 - Pluggable data sources (Azure, Local, REST, Future connectors).
 
-## Immediate Actionable Improvements (Low Risk)
+## Immediate Actionable Improvements (Phase 2 Kickoff)
 
-1. Memoize filtering via a stable hash of `filters` (e.g., `JSON.stringify(filters)` in `useMemo`).
-1. Add an `ErrorBoundary` component wrapping `App`.
-1. Implement a minimal logger utility (`core/logging/logger.ts`) with level enum & structured output.
-1. Add unit tests for: `parseInventoryFiles`, `filterDevices`, `determineLocation`, `getUpgradeRecommendations`.
-1. Enhance README with a contribution guide and link to decision records (ADRs).
-1. Replace manual table pagination & sorting with TanStack Table + optional virtualization (`react-virtual` or `@tanstack/react-table` + `react-virtual`).
-1. Improve a11y: add `role="row"`, `aria-sort`, and descriptive text for color badges (e.g., `aria-label`).
+Remaining low-risk tasks to start Phase 2 (performance hardening):
+
+1. Memoize filtering via `useMemo` + stable dependency hash of filters.
+2. Introduce TanStack Table + virtualization (`react-virtual`) for large dataset rendering.
+3. Add React Query for remote config fetch + sync status polling.
+4. Offload parsing to a Web Worker (structured message protocol + incremental progress events).
+5. Centralize ingestion validation (all IPC & worker outputs pass through schema service).
+6. Begin collecting performance metrics (filter latency, parse time) via lightweight timing wrapper.
+7. Start contribution guide & ADR template (`docs/adr/ADR-0001.md`).
+8. Enhance remaining a11y (non-color indicators, keyboard navigation for table & filters).
 
 ## Medium-Term Enhancements
 
@@ -185,22 +193,21 @@ export const DeviceSchema = z.object({
 - Every UI component needs basic a11y checks (focus, ARIA roles, color contrast).
 - Open a `docs/decisions/ADR-XXXX.md` for material architectural choices.
 
-## Quick Wins Checklist
+## Quick Wins Checklist (Updated)
 
 - [x] Add `ARCHITECTURE.md` (this file) to repo
 - [x] Implement Zod schema & integrate into `parseInventoryFiles`
-- [ ] Introduce logger
+- [x] Introduce renderer + main-process loggers (structured, rotating)
 - [x] Add initial CI workflows (lint/test/build/release)
 - [ ] Refactor table to TanStack + virtualization
 - [x] Externalize mappings → `config/device-category.json`, `config/ip-range-generic.json`
+- [x] Global `ErrorBoundary`
+- [ ] Contribution guide + ADR starter
 
 ## Closing Thoughts
 
 The project is a solid MVP with clear utility. By introducing validation, performance safeguards, structured architecture, and contributor tooling, it can evolve into a reference-grade open source inventory analytics platform. The roadmap deliberately balances immediate hygiene tasks with aspirational extensions.
 
 ---
-_Last updated: 2025-11-11_
-GitHub Copilot: Created 6 todos
-
-Read [](file:///Users/administrator/Projects/device-glance-dashboard/src/main.tsx)
-Read [](file:///Users/administrator/Projects/device-glance-dashboard/src/App.tsx)
+Last updated: 2025-11-11 (Phase 2 kickoff)
+<!-- Removed transient tooling artifact lines -->
