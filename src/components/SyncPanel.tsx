@@ -5,37 +5,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SyncProgress, LocationMapping } from '@/types/electron';
-import { parseInventoryFiles } from '@/utils/deviceUtils';
+import { parseInventoryFiles, ParseProgress } from '@/utils/deviceUtils';
 import { Device } from '@/types/device';
 import { useToast } from '@/components/ui/use-toast';
+import { useSyncStatus } from '@/hooks/useElectronQueries';
 
 interface SyncPanelProps {
   onFilesLoaded?: (devices: Device[]) => void;
+  onFilesSelected?: (files: FileList) => void;
   locationMapping?: LocationMapping | null;
 }
 
-export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
+export function SyncPanel({ onFilesLoaded, onFilesSelected, locationMapping }: SyncPanelProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [parseProgress, setParseProgress] = useState<ParseProgress | null>(null);
+  const [parseAbort, setParseAbort] = useState<AbortController | null>(null);
   const { toast } = useToast();
+
+  const { data: status } = useSyncStatus();
 
   useEffect(() => {
     if (!window.electronAPI) {
       setError('This feature is only available in the desktop app');
       return;
     }
-
-    const checkStatus = async () => {
-      try {
-        const status = await window.electronAPI.getSyncStatus();
-        setIsRunning(status.isRunning);
-      } catch (err) {
-        console.error('Failed to get sync status:', err);
-      }
-    };
-
-    checkStatus();
 
     const handleProgress = (_event: unknown, progressData: SyncProgress) => {
       setProgress(progressData);
@@ -63,6 +58,13 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep local isRunning in sync with polled status when no progress events are received
+  useEffect(() => {
+    if (status) {
+      setIsRunning(status.isRunning);
+    }
+  }, [status]);
 
   const handleStartSync = async () => {
     try {
@@ -132,14 +134,28 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
         },
       } as FileList;
 
-      // Parse the files and load them into the dashboard
-      const devices = await parseInventoryFiles(fileListLike, locationMapping);
-      onFilesLoaded(devices);
+      // If parent wants to handle parsing/progress, delegate and return
+      if (onFilesSelected) {
+        onFilesSelected(fileListLike);
+        return;
+      }
 
-      toast({
-        title: 'Files loaded successfully',
-        description: `Loaded ${devices.length} devices from synced files.`,
-      });
+      // Otherwise, parse here (legacy behavior)
+      if (onFilesLoaded) {
+        const controller = new AbortController();
+        setParseAbort(controller);
+        setParseProgress({ current: 0, total: fileListLike.length });
+        const devices = await parseInventoryFiles(fileListLike, locationMapping, {
+          signal: controller.signal,
+          onProgress: (p) => setParseProgress(p),
+        });
+        onFilesLoaded(devices);
+
+        toast({
+          title: 'Files loaded successfully',
+          description: `Loaded ${devices.length} devices from synced files.`,
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error loading synced files',
@@ -233,6 +249,17 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
             )}
           </div>
         )}
+
+          {parseProgress && !onFilesSelected && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Parsing ({parseProgress.current}/{parseProgress.total}
+                  {parseProgress.fileName ? `: ${parseProgress.fileName}` : ''})
+                </span>
+              </div>
+            </div>
+          )}
 
         {error && (
           <Alert variant="destructive">

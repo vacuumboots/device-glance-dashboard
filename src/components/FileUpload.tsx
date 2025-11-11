@@ -5,9 +5,12 @@ import { FileInput, Upload } from 'lucide-react';
 
 interface FileUploadProps {
   onFilesLoaded: (files: FileList) => void;
+  isParsing?: boolean;
+  progress?: { current: number; total: number; fileName?: string } | null;
+  onCancel?: () => void;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded, isParsing = false, progress = null, onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,7 +24,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
     event.preventDefault();
     event.stopPropagation();
     const files = event.dataTransfer.files;
-    onFilesLoaded((files as FileList) || ([] as unknown as FileList));
+    if (files) {
+      onFilesLoaded(files as FileList);
+    }
   };
 
   const handleDragOver = (event: React.DragEvent) => {
@@ -56,18 +61,47 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
           <p className="text-sm text-muted-foreground mt-2">
             Supports multiple files. Each file should contain device inventory data.
           </p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".json"
-            onChange={handleFileSelect}
-            className="hidden"
-            tabIndex={-1}
-          />
-          <Button className="mt-4" variant="outline" data-testid="file-upload-button">
-            Browse Files
-          </Button>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {/* Hidden input must precede the button to satisfy tests that access previousElementSibling */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+              tabIndex={-1}
+            />
+            <Button
+              variant="outline"
+              data-testid="file-upload-button"
+              disabled={isParsing}
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+            >
+              {isParsing ? 'Parsing…' : 'Browse Files'}
+            </Button>
+            {isParsing && onCancel && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel();
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+          {isParsing && progress && (
+            <p className="text-xs text-muted-foreground mt-3" data-testid="parse-progress">
+              Parsing {progress.current}/{progress.total}
+              {progress.fileName ? `: ${progress.fileName}` : ''}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

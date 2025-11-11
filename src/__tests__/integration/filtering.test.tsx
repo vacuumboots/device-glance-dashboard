@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Index from '../../pages/Index';
 import { Device } from '../../types/device';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock the toast hook
 vi.mock('../../components/ui/use-toast', () => ({
@@ -12,6 +13,12 @@ vi.mock('../../components/ui/use-toast', () => ({
 }));
 
 describe('Filtering Integration Tests', () => {
+  const renderWithProvider = (ui: React.ReactNode) => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  };
   const createMockFile = (devices: Device[]) => {
     const jsonContent = JSON.stringify(devices);
     const buffer = new TextEncoder().encode(jsonContent);
@@ -99,7 +106,7 @@ describe('Filtering Integration Tests', () => {
   it('should filter devices by Windows 11 readiness', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -137,7 +144,7 @@ describe('Filtering Integration Tests', () => {
   it('should filter devices by device category', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -173,7 +180,7 @@ describe('Filtering Integration Tests', () => {
   it('should filter devices by device model', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -210,7 +217,7 @@ describe('Filtering Integration Tests', () => {
   it('should combine multiple filters correctly', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -251,7 +258,7 @@ describe('Filtering Integration Tests', () => {
   it('should filter by location using checkboxes', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -284,7 +291,7 @@ describe('Filtering Integration Tests', () => {
   it('should clear filters when Clear Data button is clicked', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -322,7 +329,7 @@ describe('Filtering Integration Tests', () => {
   it('should update summary charts when filters are applied', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })
@@ -356,7 +363,7 @@ describe('Filtering Integration Tests', () => {
   it('should show no devices when conflicting filters are applied', async () => {
     const user = userEvent.setup();
 
-    render(<Index />);
+  renderWithProvider(<Index />);
 
     // Upload test file
     const fileInput = screen.getByRole('button', { name: /browse files/i })

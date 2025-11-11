@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SyncPanel } from '../SyncPanel';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock the window.electronAPI
 const mockElectronAPI = {
@@ -16,6 +17,11 @@ describe('SyncPanel', () => {
     vi.clearAllMocks();
   });
 
+  const renderWithProvider = (ui: React.ReactNode) => {
+    const client = new QueryClient();
+    return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  };
+
   it('renders web message when electronAPI is not available', () => {
     // Mock window.electronAPI as undefined
     Object.defineProperty(window, 'electronAPI', {
@@ -23,7 +29,7 @@ describe('SyncPanel', () => {
       writable: true,
     });
 
-    render(<SyncPanel />);
+  renderWithProvider(<SyncPanel />);
 
     expect(screen.getByText('Azure Sync')).toBeInTheDocument();
     expect(screen.getByText(/Azure Sync is only available in the desktop app/)).toBeInTheDocument();
@@ -36,7 +42,7 @@ describe('SyncPanel', () => {
       writable: true,
     });
 
-    render(<SyncPanel />);
+  renderWithProvider(<SyncPanel />);
 
     expect(screen.getByText('Azure Sync')).toBeInTheDocument();
     expect(screen.getByText('Start Sync')).toBeInTheDocument();
@@ -49,7 +55,7 @@ describe('SyncPanel', () => {
       writable: true,
     });
 
-    render(<SyncPanel />);
+  renderWithProvider(<SyncPanel />);
 
     expect(mockElectronAPI.getSyncStatus).toHaveBeenCalled();
   });
