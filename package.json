@@ -1,7 +1,7 @@
 {
   "name": "device-glance-dashboard",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "A dashboard for monitoring device information",
   "author": {
     "name": "Device Glance Dashboard",
@@ -164,7 +164,7 @@
       "allowToChangeInstallationDirectory": true
     },
     "extraMetadata": {
-      "version": "1.2.1"
+      "version": "1.3.0"
     }
   }
 }
