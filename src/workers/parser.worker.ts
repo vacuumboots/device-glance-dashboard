@@ -19,7 +19,15 @@ self.onmessage = (e: MessageEvent) => {
       locationMapping?: LocationMapping | null;
     };
 
-    const contents = files.map(({ name, buffer }) => ({ name, content: decodeInventoryBuffer(buffer) }));
+    const contents: { name: string; content: string }[] = [];
+    const total = files.length;
+    for (let i = 0; i < files.length; i++) {
+      const { name, buffer } = files[i];
+      const content = decodeInventoryBuffer(buffer);
+      contents.push({ name, content });
+      (self as unknown as Worker).postMessage({ type: 'progress', current: i + 1, total, fileName: name });
+    }
+
     const devices: Device[] = parseContentsToDevices(contents, locationMapping);
 
     (self as unknown as Worker).postMessage({ type: 'parsed', devices });
