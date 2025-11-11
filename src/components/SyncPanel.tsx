@@ -12,10 +12,11 @@ import { useSyncStatus } from '@/hooks/useElectronQueries';
 
 interface SyncPanelProps {
   onFilesLoaded?: (devices: Device[]) => void;
+  onFilesSelected?: (files: FileList) => void;
   locationMapping?: LocationMapping | null;
 }
 
-export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
+export function SyncPanel({ onFilesLoaded, onFilesSelected, locationMapping }: SyncPanelProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,20 +134,28 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
         },
       } as FileList;
 
-      // Parse the files and load them into the dashboard (with progress)
-      const controller = new AbortController();
-      setParseAbort(controller);
-      setParseProgress({ current: 0, total: fileListLike.length });
-      const devices = await parseInventoryFiles(fileListLike, locationMapping, {
-        signal: controller.signal,
-        onProgress: (p) => setParseProgress(p),
-      });
-      onFilesLoaded(devices);
+      // If parent wants to handle parsing/progress, delegate and return
+      if (onFilesSelected) {
+        onFilesSelected(fileListLike);
+        return;
+      }
 
-      toast({
-        title: 'Files loaded successfully',
-        description: `Loaded ${devices.length} devices from synced files.`,
-      });
+      // Otherwise, parse here (legacy behavior)
+      if (onFilesLoaded) {
+        const controller = new AbortController();
+        setParseAbort(controller);
+        setParseProgress({ current: 0, total: fileListLike.length });
+        const devices = await parseInventoryFiles(fileListLike, locationMapping, {
+          signal: controller.signal,
+          onProgress: (p) => setParseProgress(p),
+        });
+        onFilesLoaded(devices);
+
+        toast({
+          title: 'Files loaded successfully',
+          description: `Loaded ${devices.length} devices from synced files.`,
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error loading synced files',
@@ -241,7 +250,7 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
           </div>
         )}
 
-          {parseProgress && (
+          {parseProgress && !onFilesSelected && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">

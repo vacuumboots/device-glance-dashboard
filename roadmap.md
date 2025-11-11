@@ -81,9 +81,9 @@ Once complete, this will be 1.5.0 Until all is complete, keep verisons to 1.4.x
 
 - [x] perf(filtering): memoize device filtering logic — stable hash + hook implemented.
 - [x] feat(table): migrate to TanStack Table with virtualization — TanStack Table + optional virtual rows >30 implemented.
-- [ ] refactor(state): introduce React Query for remote data — manage async config fetching + sync polling.
-- [ ] feat(parsing): offload inventory parsing to Web Worker — move parseInventoryFiles off main thread.
-- [ ] refactor(data-flow): unify ingestion and IPC validation — central schema enforcement.
+- [x] refactor(state): introduce React Query for remote data — manage async config fetching + sync polling.
+- [x] feat(parsing): offload inventory parsing to Web Worker — move parseInventoryFiles off main thread.
+- [x] refactor(data-flow): unify ingestion and IPC validation — central schema enforcement.
 
 ### 🔜 Phase 3 Backlog (Not Started)
 

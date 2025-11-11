@@ -120,10 +120,23 @@ const Index = () => {
         <SettingsPanel />
 
         {/* Sync Panel */}
-        <SyncPanel onFilesLoaded={setDevices} locationMapping={locationMapping} />
+        <SyncPanel
+          onFilesLoaded={setDevices}
+          onFilesSelected={(files) => handleFilesLoaded(files)}
+          locationMapping={locationMapping}
+        />
 
         {/* File Upload */}
-        <FileUpload onFilesLoaded={handleFilesLoaded} />
+        <FileUpload
+          onFilesLoaded={handleFilesLoaded}
+          isParsing={isParsing}
+          progress={parseProgress}
+          onCancel={() => {
+            parseAbort?.abort();
+            setIsParsing(false);
+            setParseAbort(null);
+          }}
+        />
 
         {isParsing && parseProgress && (
           <div className="bg-card p-4 rounded-lg border">

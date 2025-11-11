@@ -51,7 +51,7 @@ npm run electron-dev
 
 ## 🧭 Architecture & Contribution
 
-- See ARCHITECTURE.md for an overview of the current design, known gaps, and proposed roadmap.
+- See ARCHITECTURE.md for an overview of the current design, recent Phase 2 performance hardening (TanStack Table, React Query, Web Worker parsing, unified validation), remaining gaps, and roadmap.
 - Continuous Integration runs lint, tests, and builds on every PR via GitHub Actions.
 - Contributions welcome. Please open an issue to discuss significant changes before submitting a PR.
 
@@ -246,6 +246,16 @@ The `.github/workflows/release.yml` workflow:
 - **Duration**: ~5-10 minutes for complete build and upload
 
 ## 📋 Recent Changes
+
+### November 11, 2025 - Phase 2 Performance Hardening (v1.4.x)
+
+- perf(filtering): Memoized device filtering with stable dependency hash.
+- feat(table): Migrated to TanStack Table with optional virtualization for large datasets.
+- refactor(state): Introduced React Query for external config fetch and sync status polling.
+- feat(parsing): Offloaded inventory parsing to a Web Worker with incremental progress and cancel support.
+- refactor(data-flow): Unified ingestion and IPC validation through shared parser core and Zod schemas.
+- UX: Unified, controlled parsing UI for uploads and Azure sync downloads (progress + cancel).
+
 
 ### July 24, 2025 - Architecture & UX Improvements (v1.1.6)
 

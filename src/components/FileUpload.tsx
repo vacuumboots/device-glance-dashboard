@@ -1,33 +1,22 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileInput, Upload } from 'lucide-react';
 
 interface FileUploadProps {
-  onFilesLoaded: (files: FileList, opts?: { signal?: AbortSignal; onProgress?: (p: { current: number; total: number; fileName?: string }) => void }) => void;
+  onFilesLoaded: (files: FileList) => void;
+  isParsing?: boolean;
+  progress?: { current: number; total: number; fileName?: string } | null;
+  onCancel?: () => void;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded, isParsing = false, progress = null, onCancel }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [progress, setProgress] = useState<{ current: number; total: number; fileName?: string } | null>(null);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
-  const [isParsing, setIsParsing] = useState(false);
-
-  const beginParse = (files: FileList) => {
-    const controller = new AbortController();
-    setAbortController(controller);
-    setIsParsing(true);
-    setProgress({ current: 0, total: files.length });
-    onFilesLoaded(files, {
-      signal: controller.signal,
-      onProgress: (p) => setProgress(p),
-    });
-  };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      beginParse(files);
+      onFilesLoaded(files);
     }
   };
 
@@ -35,8 +24,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
     event.preventDefault();
     event.stopPropagation();
     const files = event.dataTransfer.files;
-    if (files && files.length > 0) {
-      beginParse(files as FileList);
+    if (files) {
+      onFilesLoaded(files as FileList);
     }
   };
 
@@ -72,38 +61,42 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
           <p className="text-sm text-muted-foreground mt-2">
             Supports multiple files. Each file should contain device inventory data.
           </p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".json"
-            onChange={handleFileSelect}
-            className="hidden"
-            tabIndex={-1}
-          />
           <div className="mt-4 flex items-center justify-center gap-2">
+            {/* Hidden input must precede the button to satisfy tests that access previousElementSibling */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+              tabIndex={-1}
+            />
             <Button
-              className=""
               variant="outline"
               data-testid="file-upload-button"
               disabled={isParsing}
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
             >
               {isParsing ? 'Parsing…' : 'Browse Files'}
             </Button>
-            {isParsing && (
+            {isParsing && onCancel && (
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => {
-                  abortController?.abort();
-                  setIsParsing(false);
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel();
                 }}
               >
                 Cancel
               </Button>
             )}
           </div>
-          {progress && (
+          {isParsing && progress && (
             <p className="text-xs text-muted-foreground mt-3" data-testid="parse-progress">
               Parsing {progress.current}/{progress.total}
               {progress.fileName ? `: ${progress.fileName}` : ''}
