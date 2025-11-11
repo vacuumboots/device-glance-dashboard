@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@core': path.resolve(__dirname, './src/core'),
+      '@features': path.resolve(__dirname, './src/features'),
     },
   },
   base: './', // Use relative paths for Electron compatibility

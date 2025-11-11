@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { filterDevices } from '../deviceUtils';
-import type { Device, FilterState } from '@/types/device';
+import type { Device, FilterState } from '@features/inventory/model/device';
 import { useFilteredDevices } from '@/hooks/useFilteredDevices';
 import { renderHook, act } from '@testing-library/react';
 

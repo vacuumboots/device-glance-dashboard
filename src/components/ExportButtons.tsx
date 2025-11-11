@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, FileX } from 'lucide-react';
-import { Device } from '@/types/device';
+import { Device } from '@features/inventory/model/device';
 import { exportToCSV } from '@/utils/exportUtils';
 
 interface ExportButtonsProps {

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Device } from '@/types/device';
+import { Device } from '@features/inventory/model/device';
 import { getUpgradeRecommendations } from '@/utils/upgradeUtils';
 
 interface DeviceDetailsModalProps {

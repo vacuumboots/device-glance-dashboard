@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
-import { Device } from '@/types/device';
+import { Device } from '@features/inventory/model/device';
 
 interface DeviceTableProps {
   devices: Device[];

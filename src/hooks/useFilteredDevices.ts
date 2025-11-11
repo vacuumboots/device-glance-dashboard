@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { Device, FilterState } from '@/types/device';
-import { filterDevices } from '@/utils/deviceUtils';
+import type { Device, FilterState } from '@features/inventory/model/device';
+import { filterDevices } from '@features/inventory/services/filterDevices';
 
 // Stable stringify to avoid recomputation when filter object identity changes
 // but the semantic contents are identical (key order agnostic).

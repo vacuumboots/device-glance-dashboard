@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Device, FilterState } from '@/types/device';
+import { Device, FilterState } from '@features/inventory/model/device';
 import { Filter, Search } from 'lucide-react';
 
 interface FilterPanelProps {

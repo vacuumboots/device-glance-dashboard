@@ -13,11 +13,11 @@ import {
 } from 'recharts';
 import { Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Device } from '@/types/device';
+import { Device } from '@features/inventory/model/device';
 import { generateChartData } from '@/utils/chartUtils';
 import { TooltipProps } from 'recharts';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import { ChartData } from '@/types/device';
+import { ChartData } from '@features/inventory/model/device';
 
 interface SummaryChartsProps {
   devices: Device[];

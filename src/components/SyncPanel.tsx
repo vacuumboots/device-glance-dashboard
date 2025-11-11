@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SyncProgress, LocationMapping } from '@/types/electron';
-import { parseInventoryFiles, ParseProgress } from '@/utils/deviceUtils';
-import { Device } from '@/types/device';
+import { parseInventoryFiles, ParseProgress } from '@features/inventory/services/localFileSource';
+import { Device } from '@features/inventory/model/device';
 import { useToast } from '@/components/ui/use-toast';
 import { useSyncStatus } from '@/hooks/useElectronQueries';
 

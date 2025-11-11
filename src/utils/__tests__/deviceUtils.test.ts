@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { parseInventoryFiles, filterDevices } from '../deviceUtils';
-import { DeviceSchema } from '../../types/device.schema';
-import { Device, FilterState } from '../../types/device';
+import { parseInventoryFiles } from '@features/inventory/services/localFileSource';
+import { filterDevices } from '@features/inventory/services/filterDevices';
+import { DeviceSchema } from '@features/inventory/model/device.schema';
+import { Device, FilterState } from '@features/inventory/model/device';
 
 describe('deviceUtils', () => {
   describe('parseInventoryFiles', () => {

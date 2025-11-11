@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseInventoryFiles } from '../deviceUtils';
+import { parseInventoryFiles } from '@features/inventory/services/localFileSource';
 
 // Helper to create a FileList-like object for tests (the test setup provides a simple Array-based mock)
 const toFileList = (files: File[]): FileList => files as unknown as FileList;

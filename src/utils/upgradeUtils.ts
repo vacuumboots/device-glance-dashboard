@@ -1,4 +1,4 @@
-import { Device } from '@/types/device';
+import { Device } from '@features/inventory/model/device';
 
 export const getUpgradeRecommendations = (device: Device): string[] => {
   const recommendations: string[] = [];

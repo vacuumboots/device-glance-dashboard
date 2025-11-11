@@ -1,5 +1,5 @@
-import { Device } from '@/types/device';
-import { DeviceSchema } from '@/types/device.schema';
+import { Device } from '@features/inventory/model/device';
+import { DeviceSchema } from '@features/inventory/model/device.schema';
 import { LocationMapping } from '@/types/electron';
 import deviceCategoryMap from '@/config/device-category.json';
 import ipRangeGeneric from '@/config/ip-range-generic.json';

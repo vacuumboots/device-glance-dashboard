@@ -1,4 +1,4 @@
-import { Device, ChartData } from '@/types/device';
+import { Device, ChartData } from '@features/inventory/model/device';
 
 export const generateChartData = (
   devices: Device[],

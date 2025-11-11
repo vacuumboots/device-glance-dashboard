@@ -1,6 +1,6 @@
 import { decodeInventoryBuffer, parseContentsToDevices } from '@/utils/parserCore';
 import type { LocationMapping } from '@/types/electron';
-import type { Device } from '@/types/device';
+import type { Device } from '@features/inventory/model/device';
 
 // Message protocol types
 // { type: 'parse', files: { name: string; buffer: ArrayBuffer }[], locationMapping?: LocationMapping | null }
