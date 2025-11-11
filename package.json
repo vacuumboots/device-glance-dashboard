@@ -3,7 +3,10 @@
   "private": true,
   "version": "1.2.1",
   "description": "A dashboard for monitoring device information",
-  "author": "Device Glance Dashboard",
+  "author": {
+    "name": "Device Glance Dashboard",
+    "email": "noreply@deviceglance.local"
+  },
   "type": "module",
   "main": "public/electron.js",
   "homepage": "./",
@@ -147,7 +150,8 @@
     "linux": {
       "target": ["AppImage", "deb"],
       "category": "Utility",
-      "artifactName": "${productName}-${version}-linux-${arch}.${ext}"
+      "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+      "maintainer": "Device Glance Dashboard <noreply@deviceglance.local>"
     },
     "win": {
       "target": "nsis",
