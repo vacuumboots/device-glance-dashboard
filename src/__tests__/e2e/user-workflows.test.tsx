@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Index from '../../pages/Index';
 import { Device } from '../../types/device';
@@ -119,7 +119,7 @@ describe('End-to-End User Workflows', () => {
       decode(buffer: ArrayBuffer) {
         return new TextDecoder('utf-8').decode(buffer);
       }
-    } as unknown as Document;
+    } as unknown as typeof TextDecoder;
 
     // Mock CSV export functionality
     global.Blob = vi.fn().mockImplementation((content, options) => ({
@@ -127,23 +127,12 @@ describe('End-to-End User Workflows', () => {
       options,
     })) as unknown as typeof Blob;
 
-    global.URL = {
+    // Stub URL object URL creation (avoid real blob URLs in tests)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis.URL as any) = {
       createObjectURL: vi.fn(() => 'mock-url'),
       revokeObjectURL: vi.fn(),
-    } as unknown as Document;
-
-    global.document = {
-      createElement: vi.fn(() => ({
-        download: true,
-        setAttribute: vi.fn(),
-        style: {},
-        click: vi.fn(),
-      })),
-      body: {
-        appendChild: vi.fn(),
-        removeChild: vi.fn(),
-      },
-    } as unknown as Document;
+    };
   });
 
   describe('Complete IT Audit Workflow', () => {
@@ -204,7 +193,7 @@ describe('End-to-End User Workflows', () => {
       });
 
       // Step 5: Export filtered results
-      const exportButton = screen.getByRole('button', { name: /export csv/i });
+  const exportButton = screen.getByRole('button', { name: /export full dataset/i });
       await user.click(exportButton);
 
       // Verify CSV export was triggered
@@ -253,9 +242,11 @@ describe('End-to-End User Workflows', () => {
       expect(screen.getByText('HR-LAPTOP-001')).toBeInTheDocument();
       expect(screen.getByText('LEGACY-PC-001')).toBeInTheDocument();
 
-      // Reset and check Secure Boot compliance
-      const allTpmOption = screen.getByText('All');
-      await user.click(allTpmOption);
+  // Reset and check Secure Boot compliance - reopen TPM select then choose All
+  const tpmSelectAgain = screen.getAllByRole('combobox')[1];
+  await user.click(tpmSelectAgain);
+  const allTpmOption = await screen.findByRole('option', { name: 'All' });
+  await user.click(allTpmOption);
 
       const secureBootSelect = screen.getAllByRole('combobox')[2];
       await user.click(secureBootSelect);
@@ -344,14 +335,14 @@ describe('End-to-End User Workflows', () => {
       const modelSelect = screen.getAllByRole('combobox')[7];
       await user.click(modelSelect);
 
-      // Should see all available models
-      expect(screen.getByText('OptiPlex 7070')).toBeInTheDocument();
-      expect(screen.getByText('EliteBook 840')).toBeInTheDocument();
-      expect(screen.getByText('Precision 3660')).toBeInTheDocument();
-      expect(screen.getByText('EliteDesk 800')).toBeInTheDocument();
+  // Should see all available models (target options specifically to avoid table cell duplicates)
+  expect(await screen.findByRole('option', { name: 'OptiPlex 7070' })).toBeInTheDocument();
+  expect(await screen.findByRole('option', { name: 'EliteBook 840' })).toBeInTheDocument();
+  expect(await screen.findByRole('option', { name: 'Precision 3660' })).toBeInTheDocument();
+  expect(await screen.findByRole('option', { name: 'EliteDesk 800' })).toBeInTheDocument();
 
       // Select OptiPlex model
-      const optiplexOption = screen.getByText('OptiPlex 7070');
+  const optiplexOption = await screen.findByRole('option', { name: 'OptiPlex 7070' });
       await user.click(optiplexOption);
 
       await waitFor(() => {
@@ -397,10 +388,12 @@ describe('End-to-End User Workflows', () => {
           expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
 
-        // Should show device details
-        expect(screen.getByText('FINANCE-PC-001')).toBeInTheDocument();
-        expect(screen.getByText('Dell Inc.')).toBeInTheDocument();
-        expect(screen.getByText('OptiPlex 7070')).toBeInTheDocument();
+  // Should show device details within the modal dialog
+  const dialog = screen.getByRole('dialog');
+  expect(dialog).toBeInTheDocument();
+  expect(within(dialog).getByText('FINANCE-PC-001')).toBeInTheDocument();
+  expect(within(dialog).getByText('Dell Inc.')).toBeInTheDocument();
+  expect(within(dialog).getByText('OptiPlex 7070')).toBeInTheDocument();
 
         // Close modal
         const closeButton = screen.getByRole('button', { name: /close/i });

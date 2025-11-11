@@ -169,7 +169,7 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
 
   if (!window.electronAPI) {
     return (
-      <Card>
+      <Card data-testid="sync-panel">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Download className="w-5 h-5" />
@@ -190,7 +190,7 @@ export function SyncPanel({ onFilesLoaded, locationMapping }: SyncPanelProps) {
   }
 
   return (
-    <Card>
+    <Card data-testid="sync-panel">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Download className="w-5 h-5" />

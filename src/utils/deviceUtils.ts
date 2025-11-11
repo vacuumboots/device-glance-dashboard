@@ -1,76 +1,171 @@
 import { Device, FilterState } from '@/types/device';
+import { DeviceSchema } from '@/types/device.schema';
 import { LocationMapping } from '@/types/electron';
+import deviceCategoryMap from '@/config/device-category.json';
+import ipRangeGeneric from '@/config/ip-range-generic.json';
 
+/**
+ * Parse classic .NET serialized date strings of the form /Date(1712345678900)/.
+ * Falls back to the original input if the pattern does not match.
+ */
 const parseMsDate = (msDateString: string): string => {
   if (!msDateString) return '';
-  const match = msDateString.match(/\/Date\((\d+)\)\\/);
+  // Normalize potential stray nulls or control chars from encoding issues
+  const normalized = msDateString
+    .replace(/[\u0000-\u001F]/g, '')
+    .replace(/\uFEFF/g, '')
+    .trim();
+  // Accept /Date(<digits>)/ optionally followed by timezone offsets e.g. /Date(1712345678900+0000)/
+  const match = normalized.match(/\/??Date\((\d+)(?:[+-]\d{4})?\)\/??/);
   if (match) {
     const timestamp = parseInt(match[1], 10);
-    return new Date(timestamp).toLocaleString(); // Or format as needed
+    if (!Number.isNaN(timestamp)) {
+      return new Date(timestamp).toLocaleString();
+    }
   }
-  return msDateString; // Return original if format doesn't match
+  return msDateString;
 };
 
-const deviceCategoryMap: Record<string, string> = {
-  'OptiPlex 7070': 'Desktop',
-  'Latitude 5400': 'Laptop',
-  'Latitude 5420': 'Laptop',
-  'OptiPlex Micro 7010': 'Desktop',
-  'Latitude 5440': 'Laptop',
-  'Latitude 5450': 'Laptop',
-  'Latitude 5430': 'Laptop',
-  'OptiPlex 5040': 'Desktop',
-  'OptiPlex 5060': 'Desktop',
-  'Precision 3660': 'Desktop',
-  'Dell Pro 14 Plus PB14250': 'Laptop',
-  'Latitude 7430': 'Laptop',
-  'Precision 3450': 'Desktop',
-  'Latitude 5480': 'Laptop',
-  'OptiPlex 5070': 'Desktop',
-  'Precision 3460': 'Desktop',
-  'OptiPlex 7050': 'Desktop',
-  'Precision 3440': 'Desktop',
-  'Latitude 5455': 'Laptop',
-  'Precision 3260': 'Desktop',
-  'OptiPlex 5080': 'Desktop',
-  'System Product Name': 'Other',
-  'XPS 13 7390': 'Laptop',
-  'Precision 5820 Tower X-Series': 'Desktop',
-  'OptiPlex 7060': 'Desktop',
-  'Precision Tower 3431': 'Desktop',
-  '0': 'Other',
-  'OptiPlex 7020': 'Desktop',
-  'Precision Tower 3420': 'Desktop',
-  'OptiPlex 5050': 'Desktop',
-  'Precision Tower 3430': 'Desktop',
-  'XPS 15 9570': 'Laptop',
-  'Precision 3630 Tower': 'Laptop',
-  'OptiPlex 7040': 'Desktop',
-  'Latitude 5430 Rugged': 'Laptop',
-  'MS-7B86': 'Desktop',
-  'VMware7,1': 'Other',
-  'Latitude 5414': 'Laptop',
+/**
+ * Attempt to decode an inventory file buffer by detecting common encodings.
+ * Priority:
+ *  1. BOM detection (UTF-8, UTF-16 LE/BE)
+ *  2. Heuristic for UTF-16 LE (many zero high bytes)
+ *  3. Fallback to UTF-8
+ */
+// Safe decoders that avoid relying solely on global TextDecoder (which tests may mock)
+const safeDecode = (buffer: ArrayBuffer, encoding: 'utf-8' | 'utf-16le' | 'utf-16be'): string => {
+  try {
+    // Prefer native TextDecoder when available and working
+    // eslint-disable-next-line no-undef
+    const td = new TextDecoder(encoding);
+    return td.decode(buffer);
+  } catch {
+    // Fallback manual decoding for test environments
+    const bytes = new Uint8Array(buffer);
+    if (encoding === 'utf-8') {
+      // Minimal UTF-8 decoder (sufficient for ASCII JSON used in tests)
+      let out = '';
+      for (let i = 0; i < bytes.length; i++) {
+        const byte = bytes[i];
+        if (byte < 0x80) {
+          out += String.fromCharCode(byte);
+        } else if ((byte & 0xe0) === 0xc0 && i + 1 < bytes.length) {
+          const byte2 = bytes[++i] & 0x3f;
+          const codePoint = ((byte & 0x1f) << 6) | byte2;
+          out += String.fromCharCode(codePoint);
+        } else if ((byte & 0xf0) === 0xe0 && i + 2 < bytes.length) {
+          const byte2 = bytes[++i] & 0x3f;
+          const byte3 = bytes[++i] & 0x3f;
+          const codePoint = ((byte & 0x0f) << 12) | (byte2 << 6) | byte3;
+          out += String.fromCharCode(codePoint);
+        } else if ((byte & 0xf8) === 0xf0 && i + 3 < bytes.length) {
+          const byte2 = bytes[++i] & 0x3f;
+          const byte3 = bytes[++i] & 0x3f;
+          const byte4 = bytes[++i] & 0x3f;
+          const codePoint =
+            ((byte & 0x07) << 18) | (byte2 << 12) | (byte3 << 6) | byte4;
+          // Convert to surrogate pair
+          const high = ((codePoint - 0x10000) >> 10) + 0xd800;
+          const low = ((codePoint - 0x10000) & 0x3ff) + 0xdc00;
+          out += String.fromCharCode(high, low);
+        }
+      }
+      return out;
+    }
+    if (encoding === 'utf-16le') {
+      let out = '';
+      for (let i = 0; i + 1 < bytes.length; i += 2) {
+        out += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8));
+      }
+      return out;
+    }
+    // utf-16be
+    let out = '';
+    for (let i = 0; i + 1 < bytes.length; i += 2) {
+      out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
+    }
+    return out;
+  }
 };
+
+const decodeInventoryBuffer = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+    return safeDecode(buffer, 'utf-8');
+  }
+  if (bytes.length >= 2) {
+    if (bytes[0] === 0xFF && bytes[1] === 0xFE) {
+      return safeDecode(buffer, 'utf-16le');
+    }
+    if (bytes[0] === 0xFE && bytes[1] === 0xFF) {
+      return safeDecode(buffer, 'utf-16be');
+    }
+  }
+  // Heuristic: many zero bytes on the high-order position suggests UTF-16LE text
+  let zeroHighBytes = 0;
+  const sampleLimit = Math.min(bytes.length, 400);
+  for (let i = 1; i < sampleLimit; i += 2) {
+    if (bytes[i] === 0) zeroHighBytes++;
+  }
+  if (zeroHighBytes > 40) {
+    return safeDecode(buffer, 'utf-16le');
+  }
+  // Default to UTF-8 which is the most common for JSON
+  return safeDecode(buffer, 'utf-8');
+};
+
+// deviceCategoryMap now externalized to JSON (Record<string,string>)
 
 const determineDeviceCategory = (model: string): string => {
   return deviceCategoryMap[model] || 'Other';
 };
 
 export const parseInventoryFiles = async (
-  files: FileList,
+  files: FileList | File[],
   locationMapping?: LocationMapping | null
 ): Promise<Device[]> => {
   const devices: Device[] = [];
 
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const buffer = await file.arrayBuffer();
-    const decoder = new TextDecoder('utf-16le'); // Assuming UTF-16 Little Endian
-    const content = decoder.decode(buffer);
+  const fileArray: File[] = Array.from(files as any);
+
+  for (const file of fileArray) {
+    let content: string = '';
+    // Multi-strategy read to survive minimal JSDOM mocks
+    try {
+      if (typeof (file as any).text === 'function') {
+        content = await (file as any).text();
+      } else if (typeof (file as any).arrayBuffer === 'function') {
+        const buffer = await (file as any).arrayBuffer();
+        content = decodeInventoryBuffer(buffer);
+      } else if (file instanceof Blob) {
+        content = await new Response(file).text();
+      } else {
+        throw new Error('Unsupported File implementation');
+      }
+    } catch (readErr) {
+      // Last-resort: attempt arrayBuffer then decode
+      try {
+        const buffer = await (file as any).arrayBuffer();
+        content = decodeInventoryBuffer(buffer);
+      } catch {
+        throw new Error(
+          `Unable to read file contents for ${file.name}: ${readErr instanceof Error ? readErr.message : String(readErr)}`
+        );
+      }
+    }
 
     try {
-      const data = JSON.parse(content);
-      const fileDevices = Array.isArray(data) ? data : [data];
+      let data: unknown;
+      try {
+        data = JSON.parse(content);
+      } catch (primaryErr) {
+        // Fallback: re-decode using buffer-based encoding detection and retry parse
+        const fbBuffer = await file.arrayBuffer();
+        const fbContent = decodeInventoryBuffer(fbBuffer);
+        data = JSON.parse(fbContent);
+      }
+  const fileDevices = Array.isArray(data) ? data : [data];
 
       fileDevices.forEach((deviceData) => {
         // Handle nested TPM info
@@ -162,7 +257,9 @@ export const parseInventoryFiles = async (
           ...deviceData, // Include all original properties
         };
 
-        devices.push(device);
+  // Validate and normalize with Zod (coerce numbers/booleans, set defaults)
+  const normalized = DeviceSchema.parse(device) as Device;
+  devices.push(normalized);
       });
     } catch (error) {
       throw new Error(
@@ -246,25 +343,26 @@ export const filterDevices = (devices: Device[], filters: FilterState): Device[]
 };
 
 const determineLocation = (
-  deviceData: Device,
+  deviceData: Partial<Device> & Record<string, unknown>,
   locationMapping?: LocationMapping | null
 ): string => {
-  // Try to extract location from various possible fields
-  const location =
-    deviceData.location || deviceData.Location || deviceData.Site || deviceData.Office;
+  // Collect possible location fields (may be unknown types)
+  const candidates = [
+    deviceData.location,
+    (deviceData as any).Location,
+    (deviceData as any).Site,
+    (deviceData as any).Office,
+  ];
+  const firstString = candidates.find((c) => typeof c === 'string' && c.trim() !== '') as
+    | string
+    | undefined;
 
-  // If we found a location in the device data, check if we should translate it using genericToReal
-  if (location && locationMapping?.genericToReal) {
-    const realLocation = locationMapping.genericToReal[location];
-    if (realLocation) {
-      return realLocation;
-    }
-    // If no mapping found, return the original location
-    return location;
+  if (firstString && locationMapping?.genericToReal) {
+    const realLocation = locationMapping.genericToReal[firstString];
+    if (realLocation) return realLocation;
+    return firstString;
   }
-
-  // If we already have a location from device data (and no mapping), return it
-  if (location) return location;
+  if (firstString) return firstString;
 
   const ip = deviceData.InternalIP || '';
 
@@ -277,29 +375,8 @@ const determineLocation = (
     }
   }
 
-  // Location mapping based on IP ranges - uses generic names for privacy
-  const locationMappings = [
-    { name: 'Site 2B', range: '10.53.' },
-    { name: 'Site 2A', range: '10.51.' },
-    { name: 'Site 1A', range: '10.52.' },
-    { name: 'Site 1G', range: '10.54.' },
-    { name: 'Site 1C', range: '10.55.' },
-    { name: 'Site 1D', range: '10.56.' },
-    { name: 'Site 1B', range: '10.57.' },
-    { name: 'Location A3', range: '10.58.' },
-    { name: 'Location A2', range: '10.141.' },
-    { name: 'Site 1E', range: '10.140.' },
-    { name: 'Location B4', range: '10.142.' },
-    { name: 'Location B3', range: '10.143.' },
-    { name: 'Location A5', range: '10.145.' },
-    { name: 'Location B1', range: '10.146.' },
-    { name: 'Location B2', range: '10.147.' },
-    { name: 'Location C2', range: '10.148.' },
-    { name: 'Location C1', range: '10.149.' },
-    { name: 'Location A1', range: '10.150.' },
-    { name: 'Location A4', range: '10.151.' },
-    { name: 'Site 1F', range: '10.60.' },
-  ];
+  // Location mapping based on IP ranges - uses generic names for privacy; now externalized
+  const locationMappings = ipRangeGeneric as { name: string; range: string }[];
 
   // Check IP against location ranges (fallback to generic names)
   if (ip) {

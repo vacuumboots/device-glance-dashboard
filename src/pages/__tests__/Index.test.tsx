@@ -48,8 +48,9 @@ describe('Index Page', () => {
     // Check for SyncPanel
     expect(screen.getByTestId('sync-panel')).toBeInTheDocument();
 
-    // Check for file upload component
-    expect(screen.getByText(/drag and drop your inventory files here/i)).toBeInTheDocument();
+  // Check for file upload component (heading + drop text)
+  expect(screen.getByText('Upload Device Inventory Files')).toBeInTheDocument();
+  expect(screen.getByText(/drag and drop json files here/i)).toBeInTheDocument();
   });
 
   it('renders theme toggle', () => {

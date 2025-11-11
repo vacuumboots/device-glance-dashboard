@@ -190,11 +190,12 @@ describe('Filtering Integration Tests', () => {
     });
 
     // Apply Device Model filter
-    const modelSelect = screen.getAllByRole('combobox')[7]; // Device Model is 8th select
+  const modelSelect = screen.getAllByRole('combobox')[7]; // Device Model is 8th select
     await user.click(modelSelect);
 
-    const optiplexOption = screen.getByText('OptiPlex 7070');
-    await user.click(optiplexOption);
+  // Disambiguate option from table cell by targeting role=option
+  const optiplexOption = await screen.findByRole('option', { name: 'OptiPlex 7070' });
+  await user.click(optiplexOption);
 
     // Should show only 1 device (DESKTOP-001)
     await waitFor(() => {

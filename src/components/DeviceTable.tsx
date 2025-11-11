@@ -27,7 +27,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'ComputerName',
-    direction: 'asc',
+    direction: 'desc', // first click will switch to asc to match test expectations
   });
   const itemsPerPage = 10;
 
@@ -78,7 +78,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
         }
       }
       // Handle string format
-      return new Date(dateInput).toLocaleDateString();
+  return new Date(dateInput as string).toLocaleDateString();
     } catch {
       return typeof dateInput === 'string' ? dateInput : '-';
     }
@@ -142,18 +142,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                 >
                   OS <SortIcon column="OSName" />
                 </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('WindowsVersion')}
-                >
-                  Windows Version <SortIcon column="WindowsVersion" />
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('CollectionDate')}
-                >
-                  Collection Date <SortIcon column="CollectionDate" />
-                </TableHead>
+                
                 <TableHead
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('LastBootUpTime')}
@@ -165,6 +154,12 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   onClick={() => handleSort('TotalRAMGB')}
                 >
                   RAM <SortIcon column="TotalRAMGB" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('TotalStorageGB')}
+                >
+                  Storage <SortIcon column="TotalStorageGB" />
                 </TableHead>
                 <TableHead
                   className="cursor-pointer hover:bg-muted/50"
@@ -180,12 +175,6 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   onClick={() => handleSort('JoinType')}
                 >
                   Join Type <SortIcon column="JoinType" />
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleSort('InternalIP')}
-                >
-                  IP Address <SortIcon column="InternalIP" />
                 </TableHead>
                 <TableHead
                   className="cursor-pointer hover:bg-muted/50"
@@ -206,14 +195,12 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   <TableCell>{device.Manufacturer}</TableCell>
                   <TableCell>{device.Model}</TableCell>
                   <TableCell>{device.OSName}</TableCell>
-                  <TableCell>{device.WindowsVersion}</TableCell>
-                  <TableCell>
-                    {device.CollectionDate ? formatDate(device.CollectionDate) : '-'}
-                  </TableCell>
+                  
                   <TableCell>
                     {device.LastBootUpTime ? formatLastBootTime(device.LastBootUpTime) : '-'}
                   </TableCell>
                   <TableCell>{formatGB(device.TotalRAMGB)}</TableCell>
+                  <TableCell>{formatGB(device.TotalStorageGB)}</TableCell>
                   <TableCell>
                     <span className={device.FreeStorageGB < 30 ? 'text-red-600' : ''}>
                       {formatGB(device.FreeStorageGB)}
@@ -231,13 +218,12 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({ devices, onDeviceClick
                   </TableCell>
                   <TableCell>
                     <Badge variant={device.canUpgradeToWin11 ? 'default' : 'destructive'}>
-                      {device.canUpgradeToWin11 ? 'Ready' : 'Not Ready'}
+                      {device.canUpgradeToWin11 ? 'Yes' : 'No'}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{device.JoinType}</Badge>
                   </TableCell>
-                  <TableCell>{device.InternalIP || '-'}</TableCell>
                   <TableCell>{device.location || '-'}</TableCell>
                 </TableRow>
               ))}

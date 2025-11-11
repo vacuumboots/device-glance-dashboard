@@ -8,7 +8,8 @@ export const generateChartData = (
   const counts: Record<string, number> = {};
 
   devices.forEach((device) => {
-    const value = String(device[field] || '');
+    const raw = device[field] as unknown;
+    const value = raw === null || raw === undefined ? '' : String(raw);
     counts[value] = (counts[value] || 0) + 1;
   });
 

@@ -1,0 +1,22 @@
+[
+  { "name": "Site 2B", "range": "10.53." },
+  { "name": "Site 2A", "range": "10.51." },
+  { "name": "Site 1A", "range": "10.52." },
+  { "name": "Site 1G", "range": "10.54." },
+  { "name": "Site 1C", "range": "10.55." },
+  { "name": "Site 1D", "range": "10.56." },
+  { "name": "Site 1B", "range": "10.57." },
+  { "name": "Location A3", "range": "10.58." },
+  { "name": "Location A2", "range": "10.141." },
+  { "name": "Site 1E", "range": "10.140." },
+  { "name": "Location B4", "range": "10.142." },
+  { "name": "Location B3", "range": "10.143." },
+  { "name": "Location A5", "range": "10.145." },
+  { "name": "Location B1", "range": "10.146." },
+  { "name": "Location B2", "range": "10.147." },
+  { "name": "Location C2", "range": "10.148." },
+  { "name": "Location C1", "range": "10.149." },
+  { "name": "Location A1", "range": "10.150." },
+  { "name": "Location A4", "range": "10.151." },
+  { "name": "Site 1F", "range": "10.60." }
+]

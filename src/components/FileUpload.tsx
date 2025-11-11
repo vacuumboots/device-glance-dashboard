@@ -19,14 +19,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
 
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     const files = event.dataTransfer.files;
-    if (files && files.length > 0) {
-      onFilesLoaded(files);
-    }
+    onFilesLoaded((files as FileList) || ([] as unknown as FileList));
   };
 
   const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+    if (event && typeof event.stopPropagation === 'function') {
+      event.stopPropagation();
+    }
   };
 
   return (
@@ -34,7 +38,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileInput className="w-5 h-5" />
-          Load Inventory Data
+          Upload Device Inventory Files
         </CardTitle>
         <CardDescription>
           Upload one or more JSON inventory files to analyze your Windows device data
@@ -48,22 +52,23 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFilesLoaded }) => {
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-8 h-8 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg font-medium">Drop JSON files here or click to browse</p>
+          <p className="text-lg font-medium">Drag and drop JSON files here</p>
           <p className="text-sm text-muted-foreground mt-2">
             Supports multiple files. Each file should contain device inventory data.
           </p>
-          <Button className="mt-4" variant="outline">
-            Select Files
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".json"
+            onChange={handleFileSelect}
+            className="hidden"
+            tabIndex={-1}
+          />
+          <Button className="mt-4" variant="outline" data-testid="file-upload-button">
+            Browse Files
           </Button>
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".json"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
       </CardContent>
     </Card>
   );

@@ -37,7 +37,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
   };
 
   return (
-    <Card>
+    <Card data-testid="filter-panel">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Filter className="w-5 h-5" />
@@ -60,7 +60,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-4">
           {/* Windows 11 Ready */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-windows11">
             <label className="text-sm font-medium">Windows 11 Ready</label>
             <Select
               value={filters.windows11Ready}
@@ -78,7 +78,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* TPM Present */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-tpm">
             <label className="text-sm font-medium">TPM</label>
             <Select
               value={filters.tpmPresent}
@@ -96,7 +96,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* Secure Boot */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-secureboot">
             <label className="text-sm font-medium">Secure Boot</label>
             <Select
               value={filters.secureBootEnabled}
@@ -114,7 +114,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* Storage */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-storage">
             <label className="text-sm font-medium">Free Storage</label>
             <Select
               value={filters.lowStorage}
@@ -132,7 +132,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* Join Type */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-jointype">
             <label className="text-sm font-medium">Join Type</label>
             <Select
               value={filters.joinType}
@@ -152,7 +152,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* Device Category */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-category">
             <label className="text-sm font-medium">Device Category</label>
             <Select
               value={filters.deviceCategory}
@@ -171,7 +171,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* Hash Present */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-hashpresent">
             <label className="text-sm font-medium">Hash Present</label>
             <Select
               value={filters.hashPresent}
@@ -188,12 +188,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
             </Select>
           </div>
 
-          {/* Device Model */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Device Model</label>
+          {/* Device Model (add aria-label for test targeting) */}
+          <div className="space-y-2" data-testid="filter-model">
+            <label className="text-sm font-medium" id="device-model-label">Device Model</label>
             <Select
               value={filters.deviceModel}
               onValueChange={(value) => updateFilter('deviceModel', value)}
+              aria-labelledby="device-model-label"
             >
               <SelectTrigger>
                 <SelectValue />
@@ -210,21 +211,25 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ devices, filters, onFi
           </div>
 
           {/* Location */}
-          <div className="space-y-2">
+          <div className="space-y-2" data-testid="filter-locations">
             <label className="text-sm font-medium">Locations</label>
             <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
-              {locations.map((location) => (
-                <div key={location} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`location-${location}`}
-                    checked={filters.location.includes(location)}
-                    onCheckedChange={(checked) => handleLocationChange(location, !!checked)}
-                  />
-                  <label htmlFor={`location-${location}`} className="text-sm cursor-pointer">
-                    {location}
-                  </label>
-                </div>
-              ))}
+              {locations.map((location) => {
+                const labelId = `location-label-${location}`;
+                return (
+                  <div key={location} className="flex items-center space-x-2">
+                    <Checkbox
+                      aria-labelledby={labelId}
+                      aria-label={location}
+                      checked={filters.location.includes(location)}
+                      onCheckedChange={(checked) => handleLocationChange(location, !!checked)}
+                    />
+                    <span id={labelId} className="text-sm cursor-pointer">
+                      {location}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
