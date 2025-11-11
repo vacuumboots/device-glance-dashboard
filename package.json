@@ -15,6 +15,9 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "build:electron-services": "tsc --project tsconfig.electron.json",
+    "prepare": "husky",
+    "commitlint": "commitlint --edit $GIT_PARAMS",
+    "release:notes": "node scripts/release-notes.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -88,6 +91,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+  "@commitlint/cli": "^19.5.0",
+  "@commitlint/config-conventional": "^19.5.0",
+  "conventional-changelog-conventionalcommits": "^7.0.2",
+  "husky": "^9.0.11",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.6.3",
