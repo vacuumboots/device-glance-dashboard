@@ -696,6 +696,9 @@ Use conventional commits for clean history:
 - docs(scope): …
 - chore(scope): …
 
+<<<<<<< Updated upstream
 If you want, I can start by drafting the first two PRs:
 - CI matrix workflow for multi-OS artifacts + electron-builder target updates
 - Parser encoding fix + .NET date regex + green tests
+=======
+>>>>>>> Stashed changes
