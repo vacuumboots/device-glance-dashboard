@@ -29,8 +29,9 @@ export class CredentialsService {
     } catch (error) {
       // It's likely the file doesn't exist, which is fine.
       // Log other errors for debugging.
-      if (error instanceof Error && 'code' in error && (error as any).code !== 'ENOENT') {
-        console.error('Failed to read or decrypt credentials:', error);
+      const err = error as NodeJS.ErrnoException;
+      if (err && err.code && err.code !== 'ENOENT') {
+        console.error('Failed to read or decrypt credentials:', err);
       }
       return null;
     }

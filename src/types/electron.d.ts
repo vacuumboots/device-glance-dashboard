@@ -1,5 +1,5 @@
 export interface SyncProgress {
-  stage: 'starting' | 'downloading' | 'processing' | 'complete' | 'error';
+  stage: 'starting' | 'downloading' | 'processing' | 'complete' | 'error' | 'cancelled';
   message: string;
   percentage?: number;
 }

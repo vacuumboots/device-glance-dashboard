@@ -40,7 +40,7 @@ npm run dev
 Run the Electron desktop app:
 
 ```sh
-npm run electron:dev
+npm run electron-dev
 ```
 
 ### Development Options
@@ -48,6 +48,19 @@ npm run electron:dev
 **Local Development**
 - Use your preferred IDE to edit files locally
 - Run `npm run dev` for web development
+
+## 🧭 Architecture & Contribution
+
+- See ARCHITECTURE.md for an overview of the current design, known gaps, and proposed roadmap.
+- Continuous Integration runs lint, tests, and builds on every PR via GitHub Actions.
+- Contributions welcome. Please open an issue to discuss significant changes before submitting a PR.
+
+## ✅ CI Status
+
+This repository uses a GitHub Actions workflow at `.github/workflows/ci.yml` that:
+- Installs dependencies with `npm ci`
+- Runs `npm run lint` and `npm run test:run`
+- Builds the web bundle and Electron services
 - Run `npm run electron:dev` for desktop development
 
 **GitHub Codespaces**
