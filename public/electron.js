@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { config } from 'dotenv';
@@ -161,6 +161,30 @@ function setupIPC() {
       }
     } catch (error) {
       mainLogger.error('load-location-mapping failed', error && error.message ? error.message : error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('open-logs-folder', async () => {
+    try {
+      const date = new Date();
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      const logsDir = path.default.join(app.getPath('userData'), 'logs');
+      const todayFile = path.default.join(logsDir, `app-${yyyy}-${mm}-${dd}.log`);
+
+      // Try showing today's file if present, else open logs directory
+      try {
+        const fs = await import('node:fs/promises');
+        await fs.stat(todayFile);
+        await shell.showItemInFolder(todayFile);
+      } catch {
+        await shell.openPath(logsDir);
+      }
+      return { success: true };
+    } catch (error) {
+      mainLogger.error('open-logs-folder failed', error && error.message ? error.message : error);
       return { success: false, error: error.message };
     }
   });

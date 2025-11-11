@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, Eye, EyeOff, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { Settings, Eye, EyeOff, Save, AlertCircle, CheckCircle, FolderOpen } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AzureCredentials } from '@/types/electron';
 
@@ -147,6 +147,31 @@ export function SettingsPanel() {
           {isSaving ? 'Saving...' : 'Save Credentials'}
         </Button>
 
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          data-testid="open-logs-folder"
+          onClick={async () => {
+            if (!window.electronAPI) {
+              setMessage({ type: 'error', text: 'Logs are only available in the desktop app' });
+              return;
+            }
+            try {
+              const res = await window.electronAPI.openLogsFolder();
+              if (res?.success) {
+                setMessage({ type: 'success', text: 'Opened logs folder' });
+              } else {
+                setMessage({ type: 'error', text: res?.error || 'Failed to open logs folder' });
+              }
+            } catch (e) {
+              setMessage({ type: 'error', text: 'Failed to open logs folder' });
+            }
+          }}
+        >
+          <FolderOpen className="w-4 h-4 mr-2" /> Open Logs Folder
+        </Button>
+
         {message && (
           <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
             {message.type === 'error' ? (
@@ -162,6 +187,10 @@ export function SettingsPanel() {
           <p>
             Your Azure credentials are stored securely on your device and are not transmitted
             anywhere except to Azure for authentication.
+          </p>
+          <p className="mt-1">
+            Logs are written to your application data directory. Use "Open Logs Folder" to view
+            recent logs.
           </p>
           <p className="mt-1">
             <strong>Required:</strong> Storage Account Name, Container Name, and Access Key from

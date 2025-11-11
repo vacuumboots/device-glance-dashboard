@@ -12,4 +12,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAzureCredentials: () => ipcRenderer.invoke('get-azure-credentials'),
   loadSyncedFiles: () => ipcRenderer.invoke('load-synced-files'),
   loadLocationMapping: () => ipcRenderer.invoke('load-location-mapping'),
+  openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
 });

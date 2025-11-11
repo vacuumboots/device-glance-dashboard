@@ -55,6 +55,30 @@ npm run electron-dev
 - Continuous Integration runs lint, tests, and builds on every PR via GitHub Actions.
 - Contributions welcome. Please open an issue to discuss significant changes before submitting a PR.
 
+## 🪵 Logging & Diagnostics
+
+This project provides lightweight logging in both the renderer (React) and Electron main process.
+
+- Renderer logging: `src/core/logging/logger.ts`
+  - Levels: debug, info, warn, error
+  - Environment-aware thresholds (debug in dev, info in prod, warn in tests)
+  - Use `import logger from '@/core/logging/logger'` and call `logger.info('message', { context })`
+
+- Main process logging: `public/main-logger.js`
+  - Always logs to console
+  - When packaged (installed app), logs are also written to daily files
+  - Location per OS:
+    - macOS: `~/Library/Application Support/<App Name>/logs/app-YYYY-MM-DD.log`
+    - Windows: `%APPDATA%\\<App Name>\\logs\\app-YYYY-MM-DD.log`
+    - Linux: `~/.config/<App Name>/logs/app-YYYY-MM-DD.log`
+  - Rotation: if a log file exceeds 5 MB, it is rotated with a time suffix and a new file is started
+
+- From the app UI: Settings → “Open Logs Folder” opens the logs directory (or reveals today’s log file).
+
+Tips:
+- For debugging in development, use DevTools console and keep terminal open for Electron main logs.
+- For packaged builds, use the Settings button to quickly reach the logs directory.
+
 ## ✅ CI Status
 
 This repository uses a GitHub Actions workflow at `.github/workflows/ci.yml` that:

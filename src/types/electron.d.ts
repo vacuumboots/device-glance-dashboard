@@ -34,6 +34,7 @@ export interface ElectronAPI {
     mapping?: LocationMapping | null;
     error?: string;
   }>;
+  openLogsFolder: () => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {
